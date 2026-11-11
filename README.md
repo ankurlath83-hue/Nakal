@@ -1,0 +1,29 @@
+# Nakal website
+
+Bill entry app with login. You and your staff sign in and share the same bills on any device.
+
+Files: `index.html` (the app), `logo.png`, `config.js` (your settings), `setup.sql` (database setup).
+
+## 1. Supabase (login + database)
+
+1. Create a free account at supabase.com and make a new project.
+2. Open SQL Editor, paste everything from `setup.sql`, and run it.
+3. Open Authentication settings and turn OFF new user sign-ups.
+   This matters: every signed-in user can see all bills, so only people you add should have a login.
+4. Open Authentication > Users and add a user (email + password) for yourself and each staff member.
+   Tick "auto confirm" so they can sign in straight away.
+5. Open Project Settings > API. Copy the Project URL and the publishable (anon) key into `config.js`.
+   Never put the secret / service_role key in this file.
+
+## 2. GitHub Pages (website address)
+
+1. Create a new public repository on github.com, for example `nakal`.
+2. Upload `index.html`, `logo.png` and `config.js` to it.
+3. Open the repository Settings > Pages, choose "Deploy from a branch", branch `main`, folder `/ (root)`, and save.
+4. After a minute the site is live at `https://<your-username>.github.io/nakal/`.
+
+## 3. Use it
+
+Open the address on any phone or computer and sign in. On a phone, use the browser menu > "Add to Home screen" to get the Nakal icon.
+
+Menu names on Supabase and GitHub change from time to time; if a label differs, look for the nearest match.
