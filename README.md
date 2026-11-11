@@ -27,3 +27,10 @@ Files: `index.html` (the app), `logo.png`, `config.js` (your settings), `setup.s
 Open the address on any phone or computer and sign in. On a phone, use the browser menu > "Add to Home screen" to get the Nakal icon.
 
 Menu names on Supabase and GitHub change from time to time; if a label differs, look for the nearest match.
+
+## Android app
+
+Every push to `main` builds the Android app. Open **Releases** > newest version > download **Nakal.apk** on the phone > install (allow "Install unknown apps" once).
+
+If an older Nakal is installed, uninstall it first: each build is signed with a one-time key. Bills live in Supabase, so nothing is lost; just sign in again.
+The app has `config.js` built in, so rebuild (push any change) after you edit it.
