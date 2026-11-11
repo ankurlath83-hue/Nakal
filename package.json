@@ -4,15 +4,15 @@
   "private": true,
   "description": "Nakal bill entry app (web and Android)",
   "scripts": {
-    "web": "mkdir -p www && cp -r index.html logo.png config.js vendor www/"
+    "web": "mkdir -p www && cp -r index.html privacy.html logo.png config.js vendor www/"
   },
   "dependencies": {
-    "@capacitor/android": "6.2.0",
-    "@capacitor/core": "6.2.0",
-    "@capacitor/splash-screen": "6.0.2"
+    "@capacitor/android": "8.6.0",
+    "@capacitor/core": "8.6.0",
+    "@capacitor/splash-screen": "8.0.2"
   },
   "devDependencies": {
     "@capacitor/assets": "3.0.5",
-    "@capacitor/cli": "6.2.0"
+    "@capacitor/cli": "8.6.0"
   }
 }

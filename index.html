@@ -2,7 +2,7 @@
 <html lang="en">
 <head>
 <meta charset="utf-8">
-<meta name="viewport" content="width=device-width, initial-scale=1">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
 <title>Nakal</title>
 <link rel="icon" href="logo.png">
 <link rel="apple-touch-icon" href="logo.png">
@@ -38,7 +38,7 @@ body{background:var(--paper);color:var(--ink);font-family:var(--sans);font-size:
 button{font:inherit;color:inherit;touch-action:manipulation;cursor:pointer}
 button:focus-visible,input:focus-visible{outline:2px solid var(--accent);outline-offset:1px}
 .wrap{width:100%;max-width:520px;margin:0 auto;padding:0 16px}
-header{flex:none;background:var(--pad);color:var(--pad-ink)}
+header{flex:none;background:var(--pad);color:var(--pad-ink);padding-top:var(--safe-area-inset-top,env(safe-area-inset-top,0px))}
 header .wrap{display:flex;align-items:center;gap:10px;height:60px}
 .logo{width:38px;height:38px;border-radius:10px;flex:none;object-fit:cover;background:var(--key)}
 h1{font-family:var(--display);font-size:24px;font-weight:700;letter-spacing:-.01em;margin:0;flex:1}
@@ -46,7 +46,7 @@ h1{font-family:var(--display);font-size:24px;font-weight:700;letter-spacing:-.01
 .tabs button{border:0;background:none;padding:6px 12px;border-radius:6px;font-size:14px;font-weight:500;color:var(--pad-muted)}
 .tabs button[aria-selected="true"]{background:var(--gold);color:var(--gold-ink)}
 main{flex:1;overflow-y:auto;min-height:0}
-main .wrap{display:flex;flex-direction:column;gap:12px;padding-top:14px;padding-bottom:20px}
+main .wrap{display:flex;flex-direction:column;gap:12px;padding-top:14px;padding-bottom:calc(20px + var(--safe-area-inset-bottom,env(safe-area-inset-bottom,0px)))}
 .lbl{font-size:12px;font-weight:500;color:var(--muted);letter-spacing:.02em}
 .field{display:flex;flex-direction:column;gap:4px}
 input[type=text]{font:inherit;font-size:16px;color:var(--ink);background:var(--sheet);border:1px solid var(--line);border-radius:8px;padding:10px 12px;width:100%;min-width:0}
@@ -94,7 +94,7 @@ button.num.active{border-color:var(--accent);background:var(--soft);box-shadow:0
 .msg{font-size:14px;min-height:20px;margin:0;color:var(--muted)}
 .msg.bad{color:var(--bad)}
 .chip{align-self:flex-start;background:var(--soft);color:var(--accent);font-size:12px;font-weight:600;padding:3px 8px;border-radius:99px}
-.keypad{flex:none;background:var(--pad);color:var(--pad-ink);border-radius:22px 22px 0 0;box-shadow:0 -8px 24px rgba(10,14,50,.28);padding-bottom:env(safe-area-inset-bottom,0)}
+.keypad{flex:none;background:var(--pad);color:var(--pad-ink);border-radius:22px 22px 0 0;box-shadow:0 -8px 24px rgba(10,14,50,.28);padding-bottom:var(--safe-area-inset-bottom,env(safe-area-inset-bottom,0px))}
 .keypad .wrap{padding-top:12px;padding-bottom:12px;display:flex;flex-direction:column;gap:10px}
 .kplabel{display:grid;grid-template-columns:minmax(0,1fr) auto auto;align-items:center;gap:10px}
 .kplabel span{font-size:13px;color:var(--pad-muted);overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
@@ -152,7 +152,7 @@ input[readonly]{user-select:none;-webkit-user-select:none}
 [hidden]{display:none!important}
 body.out header,body.out main,body.out .keypad{display:none}
 body:not(.out) #login{display:none}
-#login{flex:1;display:flex;align-items:center;background:var(--pad);color:var(--pad-ink);overflow-y:auto}
+#login{flex:1;display:flex;align-items:center;padding-top:var(--safe-area-inset-top,env(safe-area-inset-top,0px));padding-bottom:var(--safe-area-inset-bottom,env(safe-area-inset-bottom,0px));background:var(--pad);color:var(--pad-ink);overflow-y:auto}
 #login form{display:flex;flex-direction:column;gap:12px;padding-top:24px;padding-bottom:24px}
 #login img{width:84px;height:84px;border-radius:20px;align-self:center}
 #login h2{font-family:var(--display);font-size:34px;margin:0 0 8px;text-align:center}
@@ -171,6 +171,7 @@ body:not(.out) #login{display:none}
   <div class="field"><label for="pass">Password</label><input type="password" id="pass" autocomplete="current-password" required></div>
   <p id="loginmsg" role="status">Checking sign-in…</p>
   <button class="btn primary" id="loginbtn" type="submit">Sign in</button>
+  <a href="privacy.html" style="color:var(--pad-muted);font-size:13px;text-align:center">Privacy policy</a>
 </form></section>
 <header><div class="wrap">
   <img class="logo" src="logo.png" alt="">
