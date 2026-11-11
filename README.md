@@ -20,7 +20,7 @@ Files: `index.html` (the app), `logo.png`, `config.js` (your settings), `setup.s
 1. Create a new public repository on github.com, for example `nakal`.
 2. Upload `index.html`, `logo.png` and `config.js` to it.
 3. Open the repository Settings > Pages, choose "Deploy from a branch", branch `main`, folder `/ (root)`, and save.
-4. After a minute the site is live at `https://<your-username>.github.io/nakal/`.
+4. After a minute the site is live at `https://ankurlath83-hue.github.io/Nakal/` (capital N matters).
 
 ## 3. Use it
 
@@ -34,3 +34,5 @@ Every push to `main` builds the Android app. Open **Releases** > newest version 
 
 If an older Nakal is installed, uninstall it first: each build is signed with a one-time key. Bills live in Supabase, so nothing is lost; just sign in again.
 The app has `config.js` built in, so rebuild (push any change) after you edit it.
+
+The website is served from the `gh-pages` branch, which the build keeps equal to `main`.
