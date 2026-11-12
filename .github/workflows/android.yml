@@ -65,8 +65,13 @@ jobs:
           KS_PASS: ${{ secrets.NAKAL_KEYSTORE_PASS }}
         run: |
           if [ -n "$KS_B64" ]; then
-            echo "$KS_B64" | base64 -d > nakal.jks
-            PASS="$KS_PASS"
+            # Accept the key even if it was pasted with line breaks or with the rest of the notes file.
+            printf '%s' "$KS_B64" | tr -d '[:space:]' | base64 -d > nakal.jks 2>/dev/null \
+              || printf '%s\n' "$KS_B64" | tr -d ' \r' | awk 'length>m{m=length;l=$0} END{print l}' | base64 -d > nakal.jks \
+              || { echo "::error::NAKAL_KEYSTORE_B64 is not valid. Paste only the long single line from nakal-signing-key.txt."; exit 1; }
+            PASS=$(printf '%s' "$KS_PASS" | tr -d '[:space:]')
+            keytool -list -keystore nakal.jks -storepass "$PASS" -alias nakal > /dev/null \
+              || { echo "::error::The signing key or its password is wrong or incomplete. Check both secrets."; exit 1; }
           else
             PASS=$(openssl rand -hex 16)
             keytool -genkeypair -keystore nakal.jks -alias nakal -keyalg RSA -keysize 2048 \
