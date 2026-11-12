@@ -4,7 +4,7 @@
   "private": true,
   "description": "Nakal bill entry app (web and Android)",
   "scripts": {
-    "web": "mkdir -p www && cp -r index.html privacy.html logo.png config.js vendor www/"
+    "web": "mkdir -p www && cp -r index.html privacy.html logo.png config.js manifest.json icon-192.png icon-512.png vendor www/"
   },
   "dependencies": {
     "@capacitor/android": "8.6.0",
