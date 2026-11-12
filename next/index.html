@@ -1,0 +1,84 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover,user-scalable=no">
+<meta name="theme-color" content="#fbf6e6" media="(prefers-color-scheme: light)">
+<meta name="theme-color" content="#121a2e" media="(prefers-color-scheme: dark)">
+<meta http-equiv="Content-Security-Policy" content="default-src 'self'; script-src 'self'; style-src 'self' 'unsafe-inline'; img-src 'self' data: blob:; connect-src 'self' https://*.googleapis.com https://*.firebaseio.com wss://*.firebaseio.com http://127.0.0.1:* http://localhost:*; frame-src 'none'; object-src 'none'; base-uri 'self'">
+<title>Nakal</title>
+<link rel="manifest" href="manifest.json">
+<link rel="icon" href="icon-192.png">
+<link rel="apple-touch-icon" href="icon-192.png">
+<link rel="stylesheet" href="css/app.css">
+</head>
+<body>
+<div id="app">
+  <div class="top">
+    <header>
+      <button type="button" id="back" class="hbtn" data-a="back" aria-label="Back" hidden>&#8249;</button>
+      <h1 id="title"></h1>
+      <span id="status" class="status"></span>
+      <button type="button" class="hbtn" data-a="lock" aria-label="Lock">&#128274;</button>
+    </header>
+    <main id="main"></main>
+    <div id="toast" class="toast" role="status"></div>
+    <div id="dock"></div>
+    <div id="sheets" hidden></div>
+  </div>
+  <div id="kp" class="kp" hidden></div>
+  <nav id="tabs">
+    <button type="button" id="tab-bill" data-a="tab" data-tab="bill"><i>&#129534;</i><span></span></button>
+    <button type="button" id="tab-ledger" data-a="tab" data-tab="ledger"><i>&#128210;</i><span></span></button>
+    <button type="button" id="tab-parties" data-a="tab" data-tab="parties"><i>&#128101;</i><span></span></button>
+    <button type="button" id="tab-items" data-a="tab" data-tab="items"><i>&#128230;</i><span></span></button>
+    <button type="button" id="tab-more" data-a="tab" data-tab="more"><i>&#9776;</i><span></span></button>
+  </nav>
+</div>
+
+<div id="wheel" hidden></div>
+
+<div id="lock" hidden>
+  <button type="button" id="llang" class="langbtn">A/&#2309;</button>
+  <div id="lname" class="lname"></div>
+  <p id="lmsg" class="lmsg"></p>
+  <div id="ldots" class="ldots"></div>
+  <div id="lpad" class="lpad">
+    <button type="button" data-k="1">1</button><button type="button" data-k="2">2</button><button type="button" data-k="3">3</button>
+    <button type="button" data-k="4">4</button><button type="button" data-k="5">5</button><button type="button" data-k="6">6</button>
+    <button type="button" data-k="7">7</button><button type="button" data-k="8">8</button><button type="button" data-k="9">9</button>
+    <span></span><button type="button" data-k="0">0</button><button type="button" data-k="b" aria-label="Backspace">&#9003;</button>
+  </div>
+  <button type="button" id="lbio" class="btn ghost" hidden></button>
+  <button type="button" id="lforgot" class="btn link"></button>
+  <div id="lhelp" class="lhelp" hidden>
+    <p id="lhelptext"></p>
+    <button type="button" id="lerase" class="btn danger wide"></button>
+    <button type="button" id="lclose" class="btn ghost wide"></button>
+  </div>
+</div>
+
+<input type="file" id="file" accept=".nkbackup,application/octet-stream,application/json" hidden>
+
+<script src="config.js"></script>
+<script src="js/core.js"></script>
+<script src="js/i18n.js"></script>
+<script src="js/calc.js"></script>
+<script src="js/security.js"></script>
+<script src="js/store.js"></script>
+<script src="js/keypad.js"></script>
+<script src="js/ui.js"></script>
+<script src="vendor/firebase-app-compat.js" defer></script>
+<script src="vendor/firebase-auth-compat.js" defer></script>
+<script src="vendor/firebase-firestore-compat.js" defer></script>
+<script src="js/sync.js" defer></script>
+<script src="js/share.js" defer></script>
+<script src="js/bills.js" defer></script>
+<script src="js/ledger.js" defer></script>
+<script src="js/parties.js" defer></script>
+<script src="js/catalogue.js" defer></script>
+<script src="js/reports.js" defer></script>
+<script src="js/more.js" defer></script>
+<script src="js/app.js" defer></script>
+</body>
+</html>
