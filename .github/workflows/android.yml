@@ -17,6 +17,23 @@ jobs:
       - name: Update website
         run: git push origin HEAD:gh-pages --force
 
+      # Fails early, with sizes only (never the values), if the signing secrets look wrong.
+      - name: Check signing key
+        env:
+          KS_B64: ${{ secrets.NAKAL_KEYSTORE_B64 }}
+          KS_PASS: ${{ secrets.NAKAL_KEYSTORE_PASS }}
+        run: |
+          if [ -z "$KS_B64" ]; then echo "No signing key set; a one-time key will be used."; exit 0; fi
+          echo "Key secret: $(printf '%s' "$KS_B64" | tr -d '[:space:]' | wc -c) characters without spaces (expected 2828), $(printf '%s\n' "$KS_B64" | wc -l) line(s)"
+          echo "Password secret: $(printf '%s' "$KS_PASS" | tr -d '[:space:]' | wc -c) characters (expected 32)"
+          printf '%s' "$KS_B64" | tr -d '[:space:]' | base64 -d > /tmp/k.jks 2>/dev/null \
+            || printf '%s\n' "$KS_B64" | tr -d ' \r' | awk 'length>m{m=length;l=$0} END{print l}' | base64 -d > /tmp/k.jks || true
+          echo "Decoded key file: $(wc -c < /tmp/k.jks) bytes (expected 2120)"
+          keytool -list -keystore /tmp/k.jks -storepass "$(printf '%s' "$KS_PASS" | tr -d '[:space:]')" -alias nakal > /dev/null 2>&1 \
+            && echo "Signing key and password are good." \
+            || { echo "::error::The signing key or its password is wrong or incomplete."; rm -f /tmp/k.jks; exit 1; }
+          rm -f /tmp/k.jks
+
       - uses: actions/setup-node@v4
         with:
           node-version: 22
