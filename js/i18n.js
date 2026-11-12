@@ -21,7 +21,7 @@
     bill_deleted: ['Bill deleted.', 'बिल हट गया।'], ask_del_bill: ['Delete bill #{no}? It will also go from the party\'s ledger.', 'बिल #{no} हटाना है? यह पार्टी के खाते से भी हट जाएगा।'],
     not_allowed: ['You are not allowed to change this. Ask the owner.', 'आप इसे नहीं बदल सकते। मालिक से कहो।'],
     share_wa: ['Send on WhatsApp', 'WhatsApp पर भेजो'], share_img: ['Photo', 'फ़ोटो'], share_pdf: ['PDF', 'PDF'], share_chart: ['Send rate chart', 'भाव लिस्ट भेजो'],
-    tip1: ['1. Type the party name.', '1. पार्टी का नाम लिखो।'], tip2: ['2. Type item, rate and qty. Press Next after each.', '2. माल, भाव और नग लिखो। हर बार आगे दबाओ।'], tip3: ['3. Press Save, then send on WhatsApp.', '3. सेव दबाओ, फिर WhatsApp पर भेजो।'],
+    tip1: ['1. Type the party name.', '1. पार्टी का नाम लिखो।'], tip2: ['2. Type item, qty and rate. Press Next after each.', '2. माल, नग और भाव लिखो। हर बार आगे दबाओ।'], tip3: ['3. Press Save, then send on WhatsApp.', '3. सेव दबाओ, फिर WhatsApp पर भेजो।'],
     all_bills: ['All bills', 'सारे बिल'], search_bills: ['Search party, bill no or item', 'पार्टी, बिल नंबर या माल खोजो'], nothing_found: ['Nothing found. Try another word.', 'कुछ नहीं मिला। दूसरा शब्द लिखो।'],
     no_bills: ['No bills yet. Make your first bill from the Bill tab.', 'अभी कोई बिल नहीं है। बिल टैब से पहला बिल बनाओ।'], items_n: ['items', 'माल'], bills_n: ['bills', 'बिल'],
 

@@ -110,7 +110,7 @@ async def main():
         d = await newapp(b, w=1200, h=800, name='laptop', q='', touch=False); kb = d.p.keyboard
         await kb.type('Sarada Textiles'); await kb.press('Enter'); await kb.type('135790'); await kb.type('135790'); await kb.press('Enter'); await d.p.wait_for_selector('[data-f="oparty"]', timeout=20000); await kb.type('Ramesh Traders'); await kb.press('Enter')
         await d.p.wait_for_selector('[data-f="item:0"].on'); assert await d.p.locator('#kp').is_hidden()
-        await kb.type('Red Dye'); await kb.press('Tab'); await kb.type('450'); await kb.press('Enter'); await kb.type('2'); await kb.press('Enter'); assert await d.js("NK.kp.key") == 'item:1'
+        await kb.type('Red Dye'); await kb.press('Tab'); await kb.type('2'); await kb.press('Enter'); await kb.type('450'); await kb.press('Enter'); assert await d.js("NK.kp.key") == 'item:1'
         await d.act('save'); await kb.press('Escape'); assert await d.p.locator('#sheets .sheet').count() == 0
         await d.go('ledger'); assert await d.js("NK.kp.key") == 'lamt'; await kb.type('500'); await kb.press('p'); await kb.type('75'); await kb.press('Enter'); await kb.type('Freight'); await kb.press('Enter'); await kb.press('b')
         e = json.loads(await d.js("JSON.stringify(NK.store.entries().map(e=>[e.d.kind,e.d.amt,e.d.note]).sort())")); assert e == [['bill', 75, 'Freight'], ['paid', 500, '']], e

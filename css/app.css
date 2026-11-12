@@ -84,12 +84,12 @@ body.ob main{padding:var(--s5) var(--s4)}
 .green{color:var(--green)} .red{color:var(--red)} .mut{color:var(--mut)} .r{text-align:right}
 
 /* Bill table */
-.bt{display:grid;grid-template-columns:minmax(0,1fr) 60px 48px 68px 28px;gap:var(--s1);align-items:start;margin-bottom:var(--s1)}
+.bt{display:grid;grid-template-columns:minmax(0,1fr) 48px 60px 68px 28px;gap:var(--s1);align-items:start;margin-bottom:var(--s1)}
 .bt.head{font-size:var(--t1);color:var(--mut);font-weight:600;padding:0 var(--s1)}
 .bt .fld{padding:var(--s2) var(--s1) var(--s2) var(--s2);font-size:var(--t1)}
 .bt .amt{min-height:44px;display:flex;align-items:center;justify-content:flex-end;font-size:var(--t1);font-weight:600;overflow:hidden}
 .bt .x{height:44px;font-size:var(--t3);color:var(--mut);display:grid;place-items:center}
-@media (min-width:400px){.bt{grid-template-columns:minmax(0,1fr) 76px 60px 84px 32px}.bt .fld,.bt .amt{font-size:var(--t2)}}
+@media (min-width:400px){.bt{grid-template-columns:minmax(0,1fr) 60px 76px 84px 32px}.bt .fld,.bt .amt{font-size:var(--t2)}}
 .addrow{min-height:44px;width:100%;color:var(--mut);font-size:var(--t1);font-weight:600;text-align:left;padding:0 var(--s2)}
 .sum{display:flex;justify-content:space-between;align-items:center;min-height:44px;padding:0 var(--s1);gap:var(--s2);font-size:var(--t2)}
 .sum.top{border-bottom:2px solid var(--ink);margin-bottom:var(--s3);font-weight:600}

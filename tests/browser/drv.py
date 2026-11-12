@@ -45,7 +45,7 @@ class App:
     async def bill(self, party, rows, transport=None, pick=False):
         await self.js("NK.ui.go('bill',{fresh:true})"); await self.focus('party'); await self.type(party); await self.nxt()
         for (item, rate, qty) in rows:
-            await self.type(item); await self.nxt(); await self.type(str(rate)); await self.nxt(); await self.type(str(qty)); await self.nxt()
+            await self.type(item); await self.nxt(); await self.type(str(qty)); await self.nxt(); await self.type(str(rate)); await self.nxt()
         if transport: await self.focus('transport'); await self.type(str(transport))
         await self.act('save'); await self.p.wait_for_selector('#sheets .sheet'); await self.act('closeSheet', 1)
     async def entry(self, party, amt, kind='paid', note=None):
