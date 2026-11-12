@@ -165,6 +165,21 @@ body:not(.out) #login{display:none}
 #login input{font:inherit;font-size:16px;padding:12px;border-radius:10px;border:1px solid var(--key);background:var(--key-fn);color:var(--pad-ink);width:100%}
 #login .btn{margin-top:6px}
 #loginmsg,#gatemsg{color:var(--gold);min-height:20px;font-size:14px;margin:0;overflow-wrap:anywhere}
+body.locked header,body.locked main,body.locked .keypad{display:none}
+body:not(.locked) #lock,body.out #lock{display:none}
+#lock{flex:1;display:flex;align-items:center;background:var(--pad);color:var(--pad-ink);overflow-y:auto;padding-top:var(--safe-area-inset-top,env(safe-area-inset-top,0px));padding-bottom:var(--safe-area-inset-bottom,env(safe-area-inset-bottom,0px))}
+.lockwrap{display:flex;flex-direction:column;align-items:center;gap:14px;padding-top:24px;padding-bottom:24px}
+#lock img{width:64px;height:64px;border-radius:16px}
+#lock h2{font-family:var(--display);font-size:24px;margin:0;text-align:center}
+.dots{display:flex;gap:16px}
+.dots i{width:16px;height:16px;border-radius:50%;border:2px solid var(--pad-muted)}
+.dots i.on{background:var(--gold);border-color:var(--gold)}
+#lockmsg{min-height:20px;margin:0;font-size:14px;color:var(--gold);text-align:center}
+.keys.lk{grid-template-columns:repeat(3,1fr);width:100%;max-width:300px}
+.kb .keys.lk{display:grid}
+@media (prefers-reduced-motion:no-preference){.shake{animation:shake .3s}}
+@keyframes shake{25%{transform:translateX(-8px)}75%{transform:translateX(8px)}}
+#pinbtns{display:flex;gap:2px;flex-wrap:wrap;justify-content:flex-end}
 #authbox,#gatebox{display:flex;flex-direction:column;gap:12px}
 #login .btn:not(.primary){background:var(--key-fn);border-color:var(--key);color:var(--pad-ink)}
 .gl{color:var(--gold)}
@@ -193,6 +208,19 @@ body:not(.out) #login{display:none}
   </div>
   <a href="privacy.html" style="color:var(--pad-muted);font-size:13px;text-align:center">Privacy policy</a>
 </form></section>
+<section id="lock"><div class="wrap lockwrap">
+  <img src="logo.png" alt="">
+  <h2 id="locktitle">Enter PIN</h2>
+  <div class="dots" id="dots" aria-hidden="true"><i></i><i></i><i></i><i></i></div>
+  <p id="lockmsg" role="status"></p>
+  <div class="keys lk" id="lockkeys">
+    <button data-k="1">1</button><button data-k="2">2</button><button data-k="3">3</button>
+    <button data-k="4">4</button><button data-k="5">5</button><button data-k="6">6</button>
+    <button data-k="7">7</button><button data-k="8">8</button><button data-k="9">9</button>
+    <span></span><button data-k="0">0</button><button data-k="back" class="fn" aria-label="Backspace">⌫</button>
+  </div>
+  <button type="button" class="link gl" id="lockalt">Forgot PIN? Sign out</button>
+</div></section>
 <header><div class="wrap">
   <img class="logo" src="logo.png" alt="">
   <h1>Nakal</h1>
@@ -248,6 +276,10 @@ body:not(.out) #login{display:none}
       <div id="stafflist"></div>
       <form class="sum" id="staffform"><input type="email" id="staffemail" placeholder="Staff email" aria-label="Staff email" required><button class="btn primary" type="submit">Add</button></form>
       <p class="msg" id="staffmsg" style="padding:0 12px 10px"></p>
+    </div>
+    <div class="sheet" id="pinbox">
+      <div class="staffhead">PIN lock on this device</div>
+      <div class="sum"><span id="pinstate"></span><span id="pinbtns"></span></div>
     </div>
   </div>
 </main>
@@ -490,7 +522,7 @@ document.addEventListener('keydown',function(e){
   if(e.ctrlKey||e.metaKey||e.altKey)return;
   var t=e.target;
   if(t&&t.matches&&t.matches('input:not([readonly]),textarea,select'))return;
-  if(body.classList.contains('out')||!active)return;
+  if(body.classList.contains('out')||body.classList.contains('locked')||!active)return;
   var k=e.key;
   if(k==='Enter'||(k==='Tab'&&!e.shiftKey)){e.preventDefault();setKb(true);next();return}
   if(k==='Tab'){e.preventDefault();setKb(true);prev();return}
@@ -600,7 +632,8 @@ function listen(){
     store.note=snap.metadata.fromCache?'Showing bills kept on this device. They sync when you are online.':'';
     var wasOut=document.body.classList.contains('out');
     setOut(false);gate(false);$('loginmsg').textContent='';markReady();
-    if(wasOut&&document.body.classList.contains('kb')&&!active&&!bill.party)setActive({k:'party'});
+    if(wasOut){pinOffer();renderPin()}
+    if(wasOut&&document.body.classList.contains('kb')&&!document.body.classList.contains('locked')&&!active&&!bill.party)setActive({k:'party'});
     if(!ownerChecked){ownerChecked=true;loadStaff()}
   },function(err){
     if(err&&err.code==='permission-denied'&&user){
@@ -616,8 +649,11 @@ function onUser(u){
   user=u;ownerChecked=false;$('staffbox').hidden=true;
   if(!u){
     if(unsub){unsub();unsub=null}
-    store.bills=[];store.ready=false;renderBills();setOut(true);gate(false);$('loginmsg').textContent='';return;
+    store.bills=[];store.ready=false;renderBills();setOut(true);gate(false);$('loginmsg').textContent='';
+    document.body.classList.remove('locked');return;
   }
+  if(pinGet()&&!fresh)showLock('unlock');
+  fresh=false;
   $('who').textContent=u.email||'';$('pass').value='';$('loginmsg').textContent='Opening…';
   listen();
 }
@@ -634,11 +670,11 @@ function initStore(){
 $('loginform').addEventListener('submit',function(e){
   e.preventDefault();if(!auth)return;
   var btn=$('loginbtn'),em=$('email').value.trim(),pw=$('pass').value;
-  btn.disabled=true;$('loginmsg').textContent=signup?'Creating account…':'Signing in…';
+  btn.disabled=true;fresh=true;$('loginmsg').textContent=signup?'Creating account…':'Signing in…';
   var p=signup
     ?auth.createUserWithEmailAndPassword(em,pw).then(function(c){return c.user.sendEmailVerification().catch(function(){})})
     :auth.signInWithEmailAndPassword(em,pw);
-  p.then(function(){btn.disabled=false},function(err){btn.disabled=false;$('loginmsg').textContent=authMsg(err)});
+  p.then(function(){btn.disabled=false},function(err){btn.disabled=false;fresh=false;$('loginmsg').textContent=authMsg(err)});
 });
 $('tosignup').addEventListener('click',function(){
   signup=!signup;
@@ -704,6 +740,102 @@ $('staffform').addEventListener('submit',function(e){
   },function(){$('staffmsg').textContent='Could not add. Check your connection.'});
 });
 
+/* ---------- PIN lock (kept on this device only) ---------- */
+var fresh=false,lock={mode:null,buf:'',first:'',tries:0,after:null,hiddenAt:0,busy:false};
+var pinOK=!!(window.crypto&&crypto.subtle&&window.TextEncoder);
+function pinKey(){return 'nakal.pin.'+(user?user.uid:'none')}
+function pinGet(){if(!user||!pinOK)return null;try{return JSON.parse(localStorage.getItem(pinKey())||'null')}catch(e){return null}}
+function pinPut(v){try{if(v)localStorage.setItem(pinKey(),JSON.stringify(v));else localStorage.removeItem(pinKey());return true}catch(e){return false}}
+function toHex(buf){return Array.prototype.map.call(new Uint8Array(buf),function(b){return ('0'+b.toString(16)).slice(-2)}).join('')}
+function fromHex(h){var a=new Uint8Array(h.length/2);for(var i=0;i<a.length;i++)a[i]=parseInt(h.substr(i*2,2),16);return a}
+function pinHash(pin,saltHex){
+  return crypto.subtle.importKey('raw',new TextEncoder().encode(pin),'PBKDF2',false,['deriveBits'])
+    .then(function(k){return crypto.subtle.deriveBits({name:'PBKDF2',salt:fromHex(saltHex),iterations:150000,hash:'SHA-256'},k,256)})
+    .then(toHex);
+}
+function paintDots(){var d=$('dots').children;for(var i=0;i<d.length;i++)d[i].classList.toggle('on',i<lock.buf.length)}
+function lockTitle(){
+  var m=lock.mode;
+  $('locktitle').textContent=m==='unlock'?'Enter PIN':m==='old'?'Enter your current PIN':m==='set1'?'Choose a 4-digit PIN':'Enter the PIN again';
+  $('lockalt').textContent=m==='unlock'?'Forgot PIN? Sign out':m==='old'?'Cancel':(lock.offer?'Not now':'Cancel');
+}
+function showLock(mode,after,offer){
+  lock.mode=mode;lock.buf='';lock.first='';lock.after=after||null;lock.offer=!!offer;lock.busy=false;
+  setActive(null);$('lockmsg').textContent='';paintDots();lockTitle();
+  document.body.classList.add('locked');
+}
+function hideLock(){lock.mode=null;lock.buf='';document.body.classList.remove('locked');renderPin()}
+function lockFail(msg){
+  lock.buf='';paintDots();$('lockmsg').textContent=msg;
+  var d=$('dots');d.classList.remove('shake');void d.offsetWidth;d.classList.add('shake');
+}
+function lockDone(){
+  var pin=lock.buf,m=lock.mode,saved=pinGet();
+  if(m==='set1'){lock.first=pin;lock.buf='';lock.mode='set2';paintDots();lockTitle();$('lockmsg').textContent='';return}
+  if(m==='set2'){
+    if(pin!==lock.first){lock.mode='set1';lockTitle();lockFail('The two PINs did not match. Start again.');return}
+    var salt=toHex(crypto.getRandomValues(new Uint8Array(16)));lock.busy=true;
+    pinHash(pin,salt).then(function(h){
+      lock.busy=false;
+      if(pinPut({s:salt,h:h})){hideLock();say('PIN lock is on for this device.')}
+      else lockFail('This device would not save the PIN.');
+    },function(){lock.busy=false;lockFail('Could not set the PIN on this device.')});
+    return;
+  }
+  if(!saved){hideLock();return}
+  lock.busy=true;
+  pinHash(pin,saved.s).then(function(h){
+    lock.busy=false;
+    if(h===saved.h){lock.tries=0;var a=lock.after;lock.after=null;if(a)a();else hideLock();return}
+    if(m==='old'){lockFail('Wrong PIN.');return}
+    lock.tries++;
+    if(lock.tries>=5){pinPut(null);document.body.classList.remove('locked');signOut();$('loginmsg').textContent='Too many wrong PINs. Sign in with your password.';return}
+    lockFail('Wrong PIN. '+(5-lock.tries)+(5-lock.tries===1?' try':' tries')+' left.');
+  },function(){lock.busy=false;lockFail('Could not check the PIN. Try again.')});
+}
+function lockPress(k){
+  if(!lock.mode||lock.busy)return;
+  if(k==='back'){lock.buf=lock.buf.slice(0,-1);paintDots();return}
+  if(!/^[0-9]$/.test(k)||lock.buf.length>=4)return;
+  lock.buf+=k;paintDots();$('lockmsg').textContent='';
+  if(lock.buf.length===4)setTimeout(lockDone,120);
+}
+bindPad($('lockkeys'),function(k){if(k)lockPress(k)});
+$('lockalt').addEventListener('click',function(){
+  if(lock.mode==='unlock'){pinPut(null);document.body.classList.remove('locked');signOut();return}
+  if(lock.offer){try{localStorage.setItem('nakal.pinask.'+user.uid,'1')}catch(e){}}
+  hideLock();
+});
+document.addEventListener('keydown',function(e){
+  if(!document.body.classList.contains('locked')||document.body.classList.contains('out'))return;
+  if(e.ctrlKey||e.metaKey||e.altKey)return;
+  if(/^[0-9]$/.test(e.key)){e.preventDefault();lockPress(e.key)}
+  else if(e.key==='Backspace'){e.preventDefault();lockPress('back')}
+});
+function pinOffer(){
+  if(!pinOK||!user||pinGet()||document.body.classList.contains('locked'))return;
+  var asked=null;try{asked=localStorage.getItem('nakal.pinask.'+user.uid)}catch(e){}
+  if(!asked)showLock('set1',null,true);
+}
+document.addEventListener('visibilitychange',function(){
+  if(document.hidden){lock.hiddenAt=Date.now();return}
+  if(user&&pinGet()&&!document.body.classList.contains('locked')&&lock.hiddenAt&&Date.now()-lock.hiddenAt>60000)showLock('unlock');
+});
+function renderPin(){
+  var st=$('pinstate'),bt=$('pinbtns');bt.innerHTML='';
+  function b(label,fn,bad){var x=el('button','link'+(bad?' bad':''),label);x.addEventListener('click',fn);bt.appendChild(x)}
+  if(!pinOK){st.textContent='Not available on this device.';return}
+  if(pinGet()){
+    st.textContent='On';
+    b('Lock now',function(){showLock('unlock')});
+    b('Change',function(){showLock('old',function(){showLock('set1')})});
+    b('Turn off',function(){showLock('old',function(){pinPut(null);hideLock();say('PIN lock is off.')})},true);
+  }else{
+    st.textContent='Off';
+    b('Set PIN',function(){showLock('set1')});
+  }
+}
+
 /* ---------- saved list ---------- */
 function toBill(b){
   var rows=(Array.isArray(b.rows)?b.rows:[]).map(function(r){return {item:String(r.item||''),rate:num(r.rate)?String(num(r.rate)):'',qty:num(r.qty)?String(num(r.qty)):''}});
@@ -750,7 +882,7 @@ function tab(name){
 $('tab-entry').addEventListener('click',function(){tab('entry')});
 $('tab-bills').addEventListener('click',function(){tab('bills')});
 
-show(blank());renderBills();initStore();
+show(blank());renderBills();renderPin();initStore();
 })();
 </script>
 </body>
