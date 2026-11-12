@@ -35,11 +35,11 @@
       if (!S.bills().length && !B.party && !NK.kp.key) h += '<div class="tip">' + t('tip1') + '<br>' + t('tip2') + '<br>' + t('tip3') + '</div>';
       h += '<div class="brow"><div class="grow">' + U.fld('party', B.party, t('party_name'), 'big') + '</div>' +
         '<button type="button" class="datebtn" data-a="date">' + NK.fmtDate(B.date) + '</button></div>';
-      h += '<div class="bt head"><span>' + t('item') + '</span><span class="r">' + t('rate') + '</span><span class="r">' + t('qty') + '</span><span class="r">' + t('amount') + '</span><span></span></div>';
+      h += '<div class="bt head"><span>' + t('item') + '</span><span class="r">' + t('qty') + '</span><span class="r">' + t('rate') + '</span><span class="r">' + t('amount') + '</span><span></span></div>';
       B.rows.forEach(function (r, i) {
         var amt = C.rowAmt(r);
-        h += '<div class="bt">' + U.fld('item:' + i, r.item, t('item') + ' ' + (i + 1)) + U.fld('rate:' + i, r.rate, '0', 'r') +
-          U.fld('qty:' + i, r.qty, '0', 'r') + '<span class="amt r">' + (amt ? NK.commas(amt) : '') + '</span>' +
+        h += '<div class="bt">' + U.fld('item:' + i, r.item, t('item') + ' ' + (i + 1)) + U.fld('qty:' + i, r.qty, '0', 'r') +
+          U.fld('rate:' + i, r.rate, '0', 'r') + '<span class="amt r">' + (amt ? NK.commas(amt) : '') + '</span>' +
           '<button type="button" class="x" data-a="delRow" data-i="' + i + '" aria-label="' + t('remove') + '">×</button></div>';
       });
       h += '<button type="button" class="addrow" data-a="addRow">+ ' + t('add_item') + '</button>';
@@ -64,15 +64,17 @@
       if (k === 'transport') return { kind: 'num', max: 9, get: function () { return B.transport; }, set: function (v) { B.transport = v; } };
       if (!r) return null;
       if (k === 'item') return { kind: 'text', max: 40, get: function () { return r.item; }, set: function (v) { r.item = v; },
-        next: function () { if (!r.item.trim() && i === B.rows.length - 1 && i > 0) NK.kp.focus('transport'); else NK.kp.focus('rate:' + i); },
+        next: function () { if (!r.item.trim() && i === B.rows.length - 1 && i > 0) NK.kp.focus('transport'); else NK.kp.focus('qty:' + i); },
         /* Catalogue suggestions: tapping one fills the rate and jumps to quantity. */
         sugg: function () { var q = NK.key(r.item); return S.items().filter(function (it) { return !q || NK.key(it.d.name).indexOf(q) >= 0; })
           .sort(function (x, y) { return NK.key(x.d.name).indexOf(q) - NK.key(y.d.name).indexOf(q) || (x.d.name < y.d.name ? -1 : 1); }).slice(0, 12)
-          .map(function (it) { return { label: it.d.name, sub: it.d.rate ? NK.money(it.d.rate) : '', pick: function () { r.item = it.d.name; r.unit = it.d.unit || ''; if (it.d.rate) r.rate = String(it.d.rate); NK.kp.focus(it.d.rate ? 'qty:' + i : 'rate:' + i); } }; }); } };
-      if (k === 'rate') return { kind: 'num', max: 9, get: function () { return r.rate; }, set: function (v) { r.rate = v; }, next: function () { NK.kp.focus('qty:' + i); } };
+          .map(function (it) { return { label: it.d.name, sub: it.d.rate ? NK.money(it.d.rate) : '', pick: function () { r.item = it.d.name; r.unit = it.d.unit || ''; if (it.d.rate) r.rate = String(it.d.rate); r.fromList = !!it.d.rate; NK.kp.focus('qty:' + i); } }; }); } };
+      /* Order is item, quantity, rate. After the last box of a row a new row opens. */
+      function nextRow() { if (i === B.rows.length - 1) B.rows.push({ item: '', rate: '', qty: '', unit: '' }); NK.kp.focus('item:' + (i + 1)); }
       if (k === 'qty') return { kind: 'num', max: 8, get: function () { return r.qty; }, set: function (v) { r.qty = v; },
-        /* A new row opens after each quantity. */
-        next: function () { if (i === B.rows.length - 1) B.rows.push({ item: '', rate: '', qty: '', unit: '' }); NK.kp.focus('item:' + (i + 1)); } };
+        /* If the rate already came from the catalogue, skip it and go straight to the next row. */
+        next: function () { if (r.fromList && NK.num(r.rate) > 0) nextRow(); else NK.kp.focus('rate:' + i); } };
+      if (k === 'rate') return { kind: 'num', max: 9, get: function () { return r.rate; }, set: function (v) { r.rate = v; r.fromList = false; }, next: nextRow };
       return null;
     },
     act: {

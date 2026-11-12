@@ -47,10 +47,10 @@
       return out;
     },
     bills: function () {
-      var out = [['Bill no', 'Date', 'Party', 'Item', 'Rate', 'Qty', 'Amount', 'Transport', 'Grand total']];
+      var out = [['Bill no', 'Date', 'Party', 'Item', 'Qty', 'Rate', 'Amount', 'Transport', 'Grand total']];
       S.bills().sort(function (a, b) { return a.d.no - b.d.no; }).forEach(function (b) {
         var p = S.get(b.d.partyId), name = p ? p.d.name : '';
-        b.d.rows.forEach(function (r, i) { out.push([b.d.no, NK.fmtDate(b.d.date), name, r.item, r.rate, r.qty, C.rowAmt(r), i ? '' : b.d.transport, i ? '' : C.grand(b.d)]); });
+        b.d.rows.forEach(function (r, i) { out.push([b.d.no, NK.fmtDate(b.d.date), name, r.item, r.qty, r.rate, C.rowAmt(r), i ? '' : b.d.transport, i ? '' : C.grand(b.d)]); });
       });
       return out;
     }

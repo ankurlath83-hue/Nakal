@@ -89,8 +89,8 @@
   function billDoc(b) {
     var p = S.get(b.d.partyId);
     return { title: biz(), sub: [t('bill') + ' #' + b.d.no + '   ' + NK.fmtDate(b.d.date), p ? p.d.name : ''],
-      cols: [{ label: t('item'), w: 0.44 }, { label: t('rate'), w: 0.17, r: 1 }, { label: t('qty'), w: 0.17, r: 1 }, { label: t('amount'), w: 0.22, r: 1 }],
-      rows: b.d.rows.map(function (r) { return [r.item, NK.commas(r.rate), NK.commas(r.qty) + (r.unit ? ' ' + r.unit : ''), NK.commas(C.rowAmt(r))]; }),
+      cols: [{ label: t('item'), w: 0.44 }, { label: t('qty'), w: 0.17, r: 1 }, { label: t('rate'), w: 0.17, r: 1 }, { label: t('amount'), w: 0.22, r: 1 }],
+      rows: b.d.rows.map(function (r) { return [r.item, NK.commas(r.qty) + (r.unit ? ' ' + r.unit : ''), NK.commas(r.rate), NK.commas(C.rowAmt(r))]; }),
       totals: [[t('sub_total'), NK.money(C.subTotal(b.d.rows))], [t('transport'), NK.money(b.d.transport || 0)], [t('grand_total'), NK.money(C.grand(b.d)), '#b3261e', 1]] };
   }
   function stmtDoc(p) {
