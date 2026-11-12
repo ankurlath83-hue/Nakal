@@ -3,3 +3,5 @@ www/
 android/
 *.apk
 *.jks
+
+*.aab
