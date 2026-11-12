@@ -160,7 +160,13 @@ body:not(.out) #login{display:none}
 #login label{font-size:13px;color:var(--pad-muted)}
 #login input{font:inherit;font-size:16px;padding:12px;border-radius:10px;border:1px solid var(--key);background:var(--key-fn);color:var(--pad-ink);width:100%}
 #login .btn{margin-top:6px}
-#loginmsg{color:var(--gold);min-height:20px;font-size:14px;margin:0}
+#loginmsg,#gatemsg{color:var(--gold);min-height:20px;font-size:14px;margin:0;overflow-wrap:anywhere}
+#authbox,#gatebox{display:flex;flex-direction:column;gap:12px}
+#login .btn:not(.primary){background:var(--key-fn);border-color:var(--key);color:var(--pad-ink)}
+.gl{color:var(--gold)}
+#staffemail{font:inherit;font-size:16px;flex:1;min-width:0;padding:10px;border:1px solid var(--line);border-radius:8px;background:var(--sheet);color:var(--ink)}
+.staffhead{background:var(--soft);font-size:12px;font-weight:600;color:var(--muted);padding:8px 12px}
+.sum span.em{overflow-wrap:anywhere;min-width:0}
 @media (prefers-reduced-motion:no-preference){.wheel{scroll-behavior:smooth}}
 </style>
 </head>
@@ -168,10 +174,19 @@ body:not(.out) #login{display:none}
 <section id="login"><form class="wrap" id="loginform">
   <img src="logo.png" alt="">
   <h2>Nakal</h2>
-  <div class="field"><label for="email">Email</label><input type="email" id="email" autocomplete="username" required></div>
-  <div class="field"><label for="pass">Password</label><input type="password" id="pass" autocomplete="current-password" required></div>
-  <p id="loginmsg" role="status">Checking sign-in…</p>
-  <button class="btn primary" id="loginbtn" type="submit">Sign in</button>
+  <div id="authbox">
+    <div class="field"><label for="email">Email</label><input type="email" id="email" autocomplete="username" required></div>
+    <div class="field"><label for="pass">Password</label><input type="password" id="pass" autocomplete="current-password" required minlength="6"></div>
+    <p id="loginmsg" role="status">Checking sign-in…</p>
+    <button class="btn primary" id="loginbtn" type="submit">Sign in</button>
+    <div class="wheelbar"><button type="button" class="link gl" id="tosignup">Create account</button><button type="button" class="link gl" id="forgot">Forgot password</button></div>
+  </div>
+  <div id="gatebox" hidden>
+    <p id="gatemsg" role="status"></p>
+    <button type="button" class="btn primary" id="recheck">Check again</button>
+    <button type="button" class="btn" id="resend" hidden>Send the verification email again</button>
+    <button type="button" class="link gl" id="gateout">Sign out</button>
+  </div>
   <a href="privacy.html" style="color:var(--pad-muted);font-size:13px;text-align:center">Privacy policy</a>
 </form></section>
 <header><div class="wrap">
@@ -224,6 +239,12 @@ body:not(.out) #login{display:none}
     <div class="wheelbar"><span class="msg" id="who"></span><button class="link" id="signout">Sign out</button></div>
     <p class="msg" id="storenote"></p>
     <div class="sheet" id="bills"></div>
+    <div class="sheet" id="staffbox" hidden>
+      <div class="staffhead">Staff who can use Nakal</div>
+      <div id="stafflist"></div>
+      <form class="sum" id="staffform"><input type="email" id="staffemail" placeholder="Staff email" aria-label="Staff email" required><button class="btn primary" type="submit">Add</button></form>
+      <p class="msg" id="staffmsg" style="padding:0 12px 10px"></p>
+    </div>
   </div>
 </main>
 
@@ -239,7 +260,9 @@ body:not(.out) #login{display:none}
   <div class="akeys" id="akeys" hidden></div>
 </div></div>
 
-<script src="vendor/supabase.js"></script>
+<script src="vendor/firebase-app-compat.js"></script>
+<script src="vendor/firebase-auth-compat.js"></script>
+<script src="vendor/firebase-firestore-compat.js"></script>
 <script src="config.js"></script>
 <script>
 (function(){
@@ -507,53 +530,132 @@ $('copy').addEventListener('click',function(){
   catch(e){say('Copy is blocked here.',true)}
 });
 
-/* ---------- storage: Supabase ---------- */
-var sb=null,uid=null,cfg=window.NAKAL_CONFIG||{};
-var readyResolve,readyP=new Promise(function(r){readyResolve=r});
-function markReady(){if(!store.ready){store.ready=true;readyResolve()}renderBills()}
-function fromRow(o){return {id:o.id,party:o.party,date:o.date,rows:o.rows,transport:o.transport,grand:o.grand,savedAt:Date.parse(o.saved_at)||0}}
-function loadBills(){
-  if(!sb||!uid)return Promise.resolve();
-  return sb.from('bills').select('*').order('saved_at',{ascending:false}).limit(1000).then(function(r){
-    if(r.error)store.note='Saved bills could not be loaded. Check your connection.';
-    else{store.note='';store.bills=(r.data||[]).map(fromRow)}
-    markReady();
-  },function(){store.note='Saved bills could not be loaded. Check your connection.';markReady()});
+/* ---------- storage: Firebase ---------- */
+var cfg=window.NAKAL_CONFIG||{},auth=null,db=null,user=null,unsub=null,signup=false,ownerChecked=false;
+function markReady(){store.ready=true;renderBills()}
+function setOut(on){document.body.classList.toggle('out',on)}
+function gate(show,msg,needVerify){
+  $('authbox').hidden=show;$('gatebox').hidden=!show;
+  if(show){$('gatemsg').textContent=msg;$('resend').hidden=!needVerify}
 }
-function onSession(session){
-  var id=session&&session.user?session.user.id:null;
-  document.body.classList.toggle('out',!id);
-  if(!id){uid=null;store.bills=[];renderBills();$('loginmsg').textContent='';return}
-  if(id!==uid){uid=id;$('who').textContent=session.user.email||'';$('pass').value='';loadBills()}
+function authMsg(e){
+  var c=(e&&e.code)||'';
+  if(/wrong-password|invalid-credential|user-not-found|invalid-login/.test(c))return 'Wrong email or password. Try again.';
+  if(/email-already-in-use/.test(c))return 'This email already has an account. Sign in instead.';
+  if(/weak-password/.test(c))return 'Use a password of at least 6 characters.';
+  if(/invalid-email/.test(c))return 'That email address does not look right.';
+  if(/network/.test(c))return 'Could not reach the server. Check your connection.';
+  if(/too-many-requests/.test(c))return 'Too many tries. Wait a few minutes and try again.';
+  return 'Something went wrong. Try again.';
+}
+function listen(){
+  if(unsub){unsub();unsub=null}
+  unsub=db.collection('nakal_bills').onSnapshot({includeMetadataChanges:true},function(snap){
+    store.bills=snap.docs.map(function(d){var o=d.data()||{};return {id:d.id,party:o.party,date:o.date,rows:o.rows,transport:o.transport,grand:o.grand,savedAt:o.savedAt}});
+    if(snap.metadata.fromCache&&snap.empty&&navigator.onLine!==false&&document.body.classList.contains('out'))return;
+    store.note=snap.metadata.fromCache?'Showing bills kept on this device. They sync when you are online.':'';
+    setOut(false);gate(false);$('loginmsg').textContent='';markReady();
+    if(!ownerChecked){ownerChecked=true;loadStaff()}
+  },function(err){
+    if(err&&err.code==='permission-denied'&&user){
+      setOut(true);
+      gate(true,user.emailVerified
+        ?'No access yet for '+user.email+'. Ask the owner to add this email under Saved > Staff in Nakal, then press Check again.'
+        :'We sent a verification link to '+user.email+'. Open it from your inbox, then press Check again. The owner must also add this email under Saved > Staff.',
+        !user.emailVerified);
+    }else{store.note='Saved bills could not be loaded. Check your connection.';markReady()}
+  });
+}
+function onUser(u){
+  user=u;ownerChecked=false;$('staffbox').hidden=true;
+  if(!u){
+    if(unsub){unsub();unsub=null}
+    store.bills=[];store.ready=false;renderBills();setOut(true);gate(false);$('loginmsg').textContent='';return;
+  }
+  $('who').textContent=u.email||'';$('pass').value='';$('loginmsg').textContent='Opening…';
+  listen();
 }
 function initStore(){
-  if(!window.supabase||!cfg.url||!cfg.key||/YOUR-/.test(cfg.url+cfg.key)){
-    $('loginmsg').textContent=window.supabase?'Setup needed: put your Supabase URL and key in config.js.':'Could not load the sign-in service. Check your connection and reload.';
+  if(!window.firebase||!cfg.firebase||!cfg.firebase.apiKey){
+    $('loginmsg').textContent=window.firebase?'Setup needed: add the Firebase settings in config.js.':'Could not load the sign-in service. Reload the page.';
     $('loginbtn').disabled=true;return;
   }
-  sb=window.supabase.createClient(cfg.url,cfg.key);
-  sb.auth.onAuthStateChange(function(ev,session){setTimeout(function(){onSession(session)},0)});
-  sb.auth.getSession().then(function(r){onSession(r.data?r.data.session:null)},function(){$('loginmsg').textContent=''});
+  firebase.initializeApp(cfg.firebase);
+  auth=firebase.auth();db=firebase.firestore();
+  db.enablePersistence({synchronizeTabs:true}).catch(function(){});
+  auth.onAuthStateChanged(onUser);
 }
 $('loginform').addEventListener('submit',function(e){
-  e.preventDefault();if(!sb)return;
-  var btn=$('loginbtn');btn.disabled=true;$('loginmsg').textContent='Signing in…';
-  sb.auth.signInWithPassword({email:$('email').value.trim(),password:$('pass').value}).then(function(r){
-    btn.disabled=false;$('loginmsg').textContent=r.error?'Wrong email or password. Try again.':'';
-  },function(){btn.disabled=false;$('loginmsg').textContent='Could not reach the server. Check your connection.'});
+  e.preventDefault();if(!auth)return;
+  var btn=$('loginbtn'),em=$('email').value.trim(),pw=$('pass').value;
+  btn.disabled=true;$('loginmsg').textContent=signup?'Creating account…':'Signing in…';
+  var p=signup
+    ?auth.createUserWithEmailAndPassword(em,pw).then(function(c){return c.user.sendEmailVerification().catch(function(){})})
+    :auth.signInWithEmailAndPassword(em,pw);
+  p.then(function(){btn.disabled=false},function(err){btn.disabled=false;$('loginmsg').textContent=authMsg(err)});
 });
-$('signout').addEventListener('click',function(){if(sb)sb.auth.signOut()});
+$('tosignup').addEventListener('click',function(){
+  signup=!signup;
+  $('loginbtn').textContent=signup?'Create account':'Sign in';
+  $('tosignup').textContent=signup?'I have an account':'Create account';
+  $('pass').setAttribute('autocomplete',signup?'new-password':'current-password');
+  $('loginmsg').textContent=signup?'Use your own email. The owner must then give it access.':'';
+});
+$('forgot').addEventListener('click',function(){
+  if(!auth)return;
+  var em=$('email').value.trim();
+  if(!em){$('loginmsg').textContent='Type your email above first, then press Forgot password.';return}
+  auth.sendPasswordResetEmail(em).then(function(){$('loginmsg').textContent='Password reset email sent to '+em+'.'},function(err){$('loginmsg').textContent=authMsg(err)});
+});
+$('recheck').addEventListener('click',function(){
+  if(!user)return;
+  $('gatemsg').textContent='Checking…';
+  user.reload().then(function(){user=auth.currentUser;return user.getIdToken(true)}).then(listen,function(){$('gatemsg').textContent='Could not reach the server. Check your connection and try again.'});
+});
+$('resend').addEventListener('click',function(){
+  if(!user)return;
+  user.sendEmailVerification().then(function(){$('gatemsg').textContent='Verification email sent again to '+user.email+'. Open the link, then press Check again.'},function(err){$('gatemsg').textContent=authMsg(err)});
+});
+function signOut(){if(auth)auth.signOut()}
+$('gateout').addEventListener('click',signOut);
+$('signout').addEventListener('click',signOut);
 $('save').addEventListener('click',function(){
   setActive(null);
   if(!bill.party.trim()){setActive({k:'party'});say('Enter the party name first.',true);return}
   var rows=filled();
   if(!rows.length||total()<=0){say('Add at least one item with rate and qty.',true);return}
+  if(!db||!user){say('Sign in again to save.',true);return}
   var id=bill.id||('b'+Date.now().toString(36)+Math.random().toString(36).slice(2,6));
-  var doc={id:id,party:bill.party.trim(),date:bill.date,rows:rows.map(function(r){return {item:String(r.item),rate:num(r.rate),qty:num(r.qty)}}),transport:num(bill.transport),total:total(),grand:grand(),saved_at:new Date().toISOString()};
-  var btn=$('save');btn.disabled=true;say('Saving…');
-  sb.from('bills').upsert(doc).then(function(r){if(r.error)throw r.error;return loadBills()})
-  .then(function(){bill.id=id;refresh();say('Bill saved.')},function(){say('Could not save. Check your connection and try again.',true)})
-  .then(function(){btn.disabled=false});
+  var doc={party:bill.party.trim(),date:bill.date,rows:rows.map(function(r){return {item:String(r.item),rate:num(r.rate),qty:num(r.qty)}}),transport:num(bill.transport),total:total(),grand:grand(),savedAt:Date.now(),by:user.email||''};
+  db.collection('nakal_bills').doc(id).set(doc).catch(function(){say('This bill did not reach the server. Check your access and connection.',true)});
+  bill.id=id;refresh();say(navigator.onLine===false?'Bill saved on this device. It will sync when you are online.':'Bill saved.');
+});
+
+/* ---------- staff list (owner only) ---------- */
+function loadStaff(){
+  if(!db)return;
+  db.collection('nakal_members').get().then(function(snap){
+    $('staffbox').hidden=false;
+    var box=$('stafflist');box.innerHTML='';
+    if(snap.empty)box.appendChild(el('p','emptynote','No staff added yet. Only you can use Nakal.'));
+    snap.docs.forEach(function(d){
+      var row=el('div','sum');row.appendChild(el('span','em',d.id));
+      var rm=el('button','link bad','Remove'),armed=false;
+      rm.addEventListener('click',function(){
+        if(!armed){armed=true;rm.textContent='Tap again to remove';setTimeout(function(){armed=false;rm.textContent='Remove'},3000);return}
+        db.collection('nakal_members').doc(d.id).delete().then(loadStaff,function(){$('staffmsg').textContent='Could not remove. Try again.'});
+      });
+      row.appendChild(rm);box.appendChild(row);
+    });
+  },function(){$('staffbox').hidden=true});
+}
+$('staffform').addEventListener('submit',function(e){
+  e.preventDefault();
+  var em=$('staffemail').value.trim().toLowerCase();
+  if(!/^[^@\s\/]+@[^@\s\/]+\.[^@\s\/]+$/.test(em)){$('staffmsg').textContent='Enter a full email address.';return}
+  db.collection('nakal_members').doc(em).set({addedAt:Date.now()}).then(function(){
+    $('staffemail').value='';$('staffmsg').textContent=em+' can now create an account in Nakal with this email and use it.';loadStaff();
+  },function(){$('staffmsg').textContent='Could not add. Check your connection.'});
 });
 
 /* ---------- saved list ---------- */
@@ -583,7 +685,7 @@ function renderBills(){
       clearTimeout(t);del.disabled=true;
       var done=function(){if(bill.id===b.id){bill.id=null;refresh()}};
       var fail=function(){del.disabled=false;armed=false;del.textContent='Could not delete. Try again'};
-      sb.from('bills').delete().eq('id',b.id).then(function(r){if(r.error){fail();return}done();loadBills()},fail);
+      db.collection('nakal_bills').doc(b.id).delete().catch(fail);done();
     });
     ops.appendChild(open);ops.appendChild(del);card.appendChild(ops);
     box.appendChild(card);
@@ -600,7 +702,7 @@ function tab(name){
   $('main').scrollTop=0;
 }
 $('tab-entry').addEventListener('click',function(){tab('entry')});
-$('tab-bills').addEventListener('click',function(){tab('bills');loadBills()});
+$('tab-bills').addEventListener('click',function(){tab('bills')});
 
 show(blank());renderBills();initStore();
 })();
