@@ -2,11 +2,11 @@
 // These web settings are public identifiers, not passwords; access is controlled by the Firestore rules.
 window.NAKAL_CONFIG = {
   firebase: {
-    apiKey: "AIzaSyDN0IIF1sE59WoAskNYzeyLq2aTacgHPQs",
-    authDomain: "phdapp-937d7.firebaseapp.com",
-    projectId: "phdapp-937d7",
-    storageBucket: "phdapp-937d7.firebasestorage.app",
-    messagingSenderId: "858531311161",
-    appId: "1:858531311161:web:bb88ec8b1ebcd2ea8767e8"
+    apiKey: "AIzaSyDkPlNia17RW8_xpMvp9nosAQOgk594q3Y",
+    authDomain: "nakal-cdb66.firebaseapp.com",
+    projectId: "nakal-cdb66",
+    storageBucket: "nakal-cdb66.firebasestorage.app",
+    messagingSenderId: "416887078075",
+    appId: "1:416887078075:web:d76e0d6fb64226a3acfd9e"
   }
 };

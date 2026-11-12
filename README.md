@@ -9,8 +9,8 @@ Bill entry app with its own keypads. The owner and approved staff sign in and sh
 ## How it works
 
 - `index.html` is the whole app; `config.js` holds the Firebase web settings; `vendor/` holds the Firebase browser libraries.
-- Logins and bills live in the Firebase project `phdapp-937d7` (the same one Prime Home Decor uses). Bills are in the `nakal_bills` collection and the staff list in `nakal_members`; nothing else in that project is touched.
-- Access is decided by the Firestore rules of that project: the owner always has access; anyone else needs a verified email that the owner has added under **Saved > Staff**.
+- Logins and bills live in Nakal's own Firebase project, `nakal-cdb66` (Firestore in Mumbai, email and password sign-in). Bills are in the `nakal_bills` collection and the staff list in `nakal_members`.
+- Access is decided by the Firestore rules of that project: everyone needs a verified email; the owner's email always has access, and anyone else must be added by the owner under **Saved > Staff**.
 - The app keeps a copy of the bills on the device, so it opens and saves without internet and syncs later.
 
 ## Adding a staff member

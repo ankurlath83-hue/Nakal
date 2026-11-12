@@ -561,7 +561,7 @@ function listen(){
       setOut(true);
       gate(true,user.emailVerified
         ?'No access yet for '+user.email+'. Ask the owner to add this email under Saved > Staff in Nakal, then press Check again.'
-        :'We sent a verification link to '+user.email+'. Open it from your inbox, then press Check again. The owner must also add this email under Saved > Staff.',
+        :'We sent a verification link to '+user.email+'. Open it from your inbox (check Spam too), then press Check again. If you are staff, the owner must also add this email under Saved > Staff.',
         !user.emailVerified);
     }else{store.note='Saved bills could not be loaded. Check your connection.';markReady()}
   });
@@ -599,7 +599,7 @@ $('tosignup').addEventListener('click',function(){
   $('loginbtn').textContent=signup?'Create account':'Sign in';
   $('tosignup').textContent=signup?'I have an account':'Create account';
   $('pass').setAttribute('autocomplete',signup?'new-password':'current-password');
-  $('loginmsg').textContent=signup?'Use your own email. The owner must then give it access.':'';
+  $('loginmsg').textContent=signup?'Use your own email. You will get a link to verify it.':'';
 });
 $('forgot').addEventListener('click',function(){
   if(!auth)return;
