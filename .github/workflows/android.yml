@@ -48,7 +48,12 @@ jobs:
         working-directory: android
         run: |
           chmod +x gradlew
-          ./gradlew assembleRelease bundleRelease --no-daemon
+          # Maven Central sometimes answers "Too Many Requests"; wait and try again.
+          for n in 1 2 3; do
+            ./gradlew assembleRelease bundleRelease --no-daemon && exit 0
+            echo "Build attempt $n failed; retrying in 60s"; sleep 60
+          done
+          exit 1
 
       # The signing key is never stored in this public repository.
       # With the secrets NAKAL_KEYSTORE_B64 and NAKAL_KEYSTORE_PASS set, every build uses
