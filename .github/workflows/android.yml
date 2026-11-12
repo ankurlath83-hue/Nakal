@@ -1,21 +1,46 @@
-name: Build Android app
+name: Build website, Android app and Windows app
 
 on:
   push:
-    branches: [main]
+    branches: [main, v2]
   workflow_dispatch:
 
 permissions:
   contents: write
 
+env:
+  # main = the real app. Any other branch = a preview that installs beside the real app.
+  PREVIEW: ${{ github.ref_name != 'main' }}
+  TAG: ${{ github.ref_name == 'main' && format('v2.0.{0}', github.run_number) || format('preview-{0}', github.run_number) }}
+
 jobs:
+  web:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+      - name: Check the arithmetic, lock and backup (320 bills)
+        run: node tests/logic.test.js
+      - name: Update website (main)
+        if: github.ref_name == 'main'
+        run: git push origin HEAD:gh-pages --force
+      - name: Update preview website (other branches) at /next/
+        if: github.ref_name != 'main'
+        run: |
+          npm run web
+          git fetch --depth 1 origin gh-pages
+          git worktree add /tmp/pages origin/gh-pages
+          rm -rf /tmp/pages/next && cp -r www /tmp/pages/next
+          cd /tmp/pages
+          git config user.name "github-actions" && git config user.email "actions@github.com"
+          git add -A next && git commit -m "Preview build ${{ github.run_number }}" && git push origin HEAD:gh-pages
+
   apk:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
-
-      - name: Update website
-        run: git push origin HEAD:gh-pages --force
 
       # Fails early, with sizes only (never the values), if the signing secrets look wrong.
       - name: Check signing key
@@ -49,7 +74,12 @@ jobs:
         run: npm install --no-audit --no-fund
 
       - name: Prepare web files
-        run: npm run web
+        run: |
+          npm run web
+          # A preview build gets its own id and name so it does not replace the installed app.
+          if [ "$PREVIEW" = "true" ]; then
+            sed -i 's/"in.nakal.app"/"in.nakal.app.next"/; s/"appName": "Nakal"/"appName": "Nakal 2"/' capacitor.config.json
+          fi
 
       - name: Add Android platform
         run: |
@@ -60,7 +90,7 @@ jobs:
       - name: Set version
         run: |
           sed -i -E "s/versionCode( =)? 1$/versionCode\1 ${{ github.run_number }}/" android/app/build.gradle
-          sed -i -E "s/versionName( =)? \"1.0\"/versionName\1 \"1.0.${{ github.run_number }}\"/" android/app/build.gradle
+          sed -i -E "s/versionName( =)? \"1.0\"/versionName\1 \"2.0.${{ github.run_number }}\"/" android/app/build.gradle
           grep -E "versionCode|versionName" android/app/build.gradle
 
       - name: Build release APK and Play bundle
@@ -115,12 +145,39 @@ jobs:
       - name: Publish release
         uses: softprops/action-gh-release@v2
         with:
-          tag_name: v1.0.${{ github.run_number }}
-          name: Nakal 1.0.${{ github.run_number }}
+          tag_name: ${{ env.TAG }}
+          name: Nakal ${{ env.TAG }}
+          prerelease: ${{ github.ref_name != 'main' }}
           body: |
-            Android app for Nakal. Download **Nakal.apk** on your phone and open it to install.
-            If an older Nakal is installed, uninstall it first. Bills are kept online, so nothing is lost.
+            **Nakal.apk** - Android app. Download on your phone and open it to install.
+            **Nakal-Windows.exe** - Windows app. Download and double-click; nothing to install.
+            **Nakal.aab** - the file to upload to the Play Store (only present when the signing key is set).
           files: |
             Nakal.apk
             Nakal.aab
             Nakal-unsigned.aab
+
+  windows:
+    runs-on: windows-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+      - name: Prepare app files
+        shell: bash
+        run: |
+          npm run web
+          rm -rf electron/www && cp -r www electron/www
+      - name: Build Windows app
+        working-directory: electron
+        run: |
+          npm install --no-audit --no-fund
+          npm run dist
+      - name: Publish release
+        uses: softprops/action-gh-release@v2
+        with:
+          tag_name: ${{ env.TAG }}
+          name: Nakal ${{ env.TAG }}
+          prerelease: ${{ github.ref_name != 'main' }}
+          files: electron/dist/Nakal-Windows.exe

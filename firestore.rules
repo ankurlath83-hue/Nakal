@@ -1,0 +1,69 @@
+rules_version = '2';
+// Rules for the bills + ledger app (collections starting with nk_).
+// A business can be read and written only by its own owner and the staff the owner has added.
+// Everything inside "recs" is already encrypted on the phone; these rules decide who may touch it.
+service cloud.firestore {
+  match /databases/{database}/documents {
+
+    function signedIn() { return request.auth != null && request.auth.token.email_verified == true; }
+    function myEmail() { return request.auth.token.email.lower(); }
+    function biz(b) { return get(/databases/$(database)/documents/nk_biz/$(b)).data; }
+    function isOwner(b) { return signedIn() && biz(b).owner == request.auth.uid; }
+    function memberDoc(b) { return /databases/$(database)/documents/nk_biz/$(b)/members/$(myEmail()); }
+    function isStaff(b) { return signedIn() && exists(memberDoc(b)); }
+    function entryOnly(b) { return get(memberDoc(b)).data.entryOnly == true; }
+    function fullStaff(b) { return isStaff(b) && !entryOnly(b); }
+
+    // Owner's pointer to their business.
+    match /nk_users/{uid} {
+      allow read, write: if signedIn() && request.auth.uid == uid;
+    }
+
+    // Invite: lets a staff member find the business they were added to.
+    match /nk_invites/{email} {
+      allow get: if signedIn() && myEmail() == email;
+      allow create, update: if isOwner(request.resource.data.bizId);
+      allow delete: if isOwner(resource.data.bizId);
+    }
+
+    match /nk_biz/{b} {
+      allow get: if signedIn() && (resource.data.owner == request.auth.uid || isStaff(b));
+      allow create: if signedIn() && request.resource.data.owner == request.auth.uid;
+      allow update: if signedIn() && resource.data.owner == request.auth.uid && request.resource.data.owner == resource.data.owner;
+      allow delete: if false;
+
+      // Staff list: only the owner changes it. A staff member can read their own line.
+      match /members/{email} {
+        allow read: if isOwner(b) || (signedIn() && myEmail() == email);
+        allow write: if isOwner(b);
+      }
+
+      // Key requests: a phone asks for the business key; only the owner can answer.
+      match /keys/{device} {
+        allow get: if isOwner(b) || (isStaff(b) && (resource == null || resource.data.uid == request.auth.uid));
+        allow list: if isOwner(b);
+        allow create: if (isOwner(b) || isStaff(b)) && request.resource.data.uid == request.auth.uid
+                      && request.resource.data.email == myEmail() && request.resource.data.wrapped == null;
+        allow update: if isOwner(b) && request.resource.data.uid == resource.data.uid && request.resource.data.pub == resource.data.pub;
+        allow delete: if isOwner(b) || (signedIn() && resource.data.uid == request.auth.uid);
+      }
+
+      // The book: one encrypted document per bill, payment, party or item.
+      match /recs/{id} {
+        allow read: if isOwner(b) || isStaff(b);
+        // Anyone in the business can add. The writer is recorded.
+        allow create: if (isOwner(b) || isStaff(b)) && request.resource.data.by == request.auth.uid
+                      && request.resource.data.u == request.time;
+        // Owner and full staff can change or delete anything.
+        // Entry-only staff can change only what they added themselves, and can take back (undo)
+        // their own entry only within 10 minutes of saving it.
+        allow update: if request.resource.data.u == request.time && (
+                        isOwner(b) || fullStaff(b) ||
+                        (isStaff(b) && resource.data.by == request.auth.uid && request.resource.data.by == request.auth.uid
+                          && (request.resource.data.del == false || resource.data.u > request.time - duration.value(10, 'm')))
+                      );
+        allow delete: if false;
+      }
+    }
+  }
+}

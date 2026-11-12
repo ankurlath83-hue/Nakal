@@ -1,0 +1,31 @@
+{
+  "name": "nakal-desktop",
+  "productName": "Nakal",
+  "version": "2.0.0",
+  "private": true,
+  "description": "Bills and party ledger (Windows app)",
+  "author": "Nakal",
+  "main": "main.js",
+  "scripts": {
+    "start": "electron .",
+    "dist": "electron-builder --win portable --x64 --publish never"
+  },
+  "devDependencies": {
+    "electron": "^33.2.1",
+    "electron-builder": "25.1.8"
+  },
+  "build": {
+    "appId": "in.nakal.app",
+    "files": [
+      "main.js",
+      "www/**/*"
+    ],
+    "win": {
+      "target": "portable",
+      "icon": "www/icon-512.png"
+    },
+    "portable": {
+      "artifactName": "Nakal-Windows.exe"
+    }
+  }
+}

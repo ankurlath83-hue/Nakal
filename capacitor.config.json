@@ -8,11 +8,11 @@
   "plugins": {
     "SplashScreen": {
       "launchShowDuration": 500,
-      "backgroundColor": "#2e307d"
+      "backgroundColor": "#fbf6e6"
     },
     "SystemBars": {
       "insetsHandling": "css",
-      "style": "DARK"
+      "style": "DEFAULT"
     }
   }
 }

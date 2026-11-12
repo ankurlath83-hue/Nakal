@@ -3,5 +3,7 @@ www/
 android/
 *.apk
 *.jks
-
 *.aab
+electron/www/
+electron/dist/
+electron/node_modules/
