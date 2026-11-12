@@ -97,7 +97,7 @@ button.num.active{border-color:var(--accent);background:var(--soft);box-shadow:0
 .chip{align-self:flex-start;background:var(--soft);color:var(--accent);font-size:12px;font-weight:600;padding:3px 8px;border-radius:99px}
 .keypad{flex:none;background:var(--pad);color:var(--pad-ink);border-radius:22px 22px 0 0;box-shadow:0 -8px 24px rgba(10,14,50,.28);padding-bottom:var(--safe-area-inset-bottom,env(safe-area-inset-bottom,0px))}
 .keypad .wrap{padding-top:12px;padding-bottom:12px;display:flex;flex-direction:column;gap:10px}
-.kplabel{display:grid;grid-template-columns:minmax(0,1fr) auto auto;align-items:center;gap:10px}
+.kplabel{display:grid;grid-template-columns:minmax(0,1fr) auto auto auto;align-items:center;gap:10px}
 .kplabel span{font-size:13px;color:var(--pad-muted);overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
 .kplabel b{font-family:var(--mono);font-size:28px;font-weight:600;color:var(--pad-ink);white-space:nowrap}
 .kplabel b::after{content:"";display:inline-block;width:2px;height:24px;margin-left:3px;vertical-align:-3px;background:var(--gold)}
@@ -126,6 +126,10 @@ input[readonly]{user-select:none;-webkit-user-select:none}
 @keyframes rowin{from{opacity:0;transform:translateY(-6px)}to{opacity:1;transform:none}}
 @keyframes bump{50%{transform:scale(1.06)}}
 .sum.grand .num{display:inline-block;transform-origin:right center}
+.kb .keys,.kb .akeys{display:none}
+.kbhint{display:none;font-size:12px;color:var(--pad-muted);margin:0}
+.kb .kbhint{display:block}
+.kb .keypad{border-radius:14px 14px 0 0}
 .sugg{display:flex;gap:6px;overflow-x:auto;touch-action:pan-x;scrollbar-width:none;min-height:34px;align-items:center}
 .sugg::-webkit-scrollbar{display:none}
 .sugg button{flex:none;max-width:170px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;border:1px solid var(--pad-muted);background:none;color:var(--pad-ink);border-radius:99px;padding:6px 12px;font-size:14px}
@@ -250,7 +254,8 @@ body:not(.out) #login{display:none}
 
 <div class="keypad" id="keypad" hidden><div class="wrap">
   <div class="sugg" id="sugg" hidden aria-label="Suggestions from saved bills"></div>
-  <div class="kplabel"><span id="kpname"></span><b id="kpval">0</b><button class="hide" id="kphide">Hide</button></div>
+  <div class="kplabel"><span id="kpname"></span><b id="kpval">0</b><button class="hide" id="kptoggle">Keypad</button><button class="hide" id="kphide">Hide</button></div>
+  <p class="kbhint">Type on your keyboard. Enter or Tab: next box. Shift+Tab: back. Esc: close.</p>
   <div class="keys" id="keys">
     <button data-k="7">7</button><button data-k="8">8</button><button data-k="9">9</button><button data-k="back" class="fn" aria-label="Backspace">⌫</button>
     <button data-k="4">4</button><button data-k="5">5</button><button data-k="6">6</button><button data-k="clear" class="fn">Clear</button>
@@ -457,6 +462,45 @@ function paintCaps(){
 })();
 bindPad($('keys'),function(k){press(k)});
 $('kphide').addEventListener('click',function(){setActive(null)});
+
+/* ---------- laptop keyboard ---------- */
+var body=document.body;
+function setKb(on){body.classList.toggle('kb',on);$('kptoggle').textContent=on?'Show keypad':'Hide keypad'}
+setKb(window.matchMedia&&matchMedia('(hover:hover) and (pointer:fine)').matches);
+$('kptoggle').addEventListener('click',function(){setKb(!body.classList.contains('kb'))});
+document.addEventListener('pointerdown',function(e){if(e.pointerType==='touch'&&body.classList.contains('kb')&&!e.target.closest('#kptoggle'))setKb(false)},true);
+function textKey(k){
+  var v=getVal();
+  if(k==='back')v=v.slice(0,-1);
+  else if(k===' '){if(v&&!/ $/.test(v)&&v.length<40)v+=' '}
+  else if(v.length<40)v+=k;
+  manual=false;setVal(v);refresh();
+}
+function prev(){
+  if(!active)return;
+  var last=bill.rows.length-1;
+  if(active.k==='transport'){setActive({k:'qty',i:last});return}
+  if(active.k==='party')return;
+  var i=active.i;
+  if(active.k==='qty'){setActive({k:'rate',i:i});return}
+  if(active.k==='rate'){setActive({k:'item',i:i});return}
+  setActive(i>0?{k:'qty',i:i-1}:{k:'party'});
+}
+document.addEventListener('keydown',function(e){
+  if(e.ctrlKey||e.metaKey||e.altKey)return;
+  var t=e.target;
+  if(t&&t.matches&&t.matches('input:not([readonly]),textarea,select'))return;
+  if(body.classList.contains('out')||!active)return;
+  var k=e.key;
+  if(k==='Enter'||(k==='Tab'&&!e.shiftKey)){e.preventDefault();setKb(true);next();return}
+  if(k==='Tab'){e.preventDefault();setKb(true);prev();return}
+  if(k==='Escape'){setActive(null);return}
+  if(k==='Backspace'){e.preventDefault();setKb(true);if(isText())textKey('back');else press('back');return}
+  if(k==='Delete'){e.preventDefault();setVal('');refresh();return}
+  if(k.length!==1)return;
+  e.preventDefault();setKb(true);
+  if(isText())textKey(k);else if(/[0-9.]/.test(k))press(k);
+});
 $('transport').addEventListener('click',function(){setActive({k:'transport'})});
 $('addrow').addEventListener('click',function(){bill.rows.push({item:'',rate:'',qty:''});freshRow=bill.rows.length-1;active=null;renderRows();setActive({k:'item',i:bill.rows.length-1})});
 $('party').addEventListener('click',function(){setActive({k:'party'})});
@@ -518,7 +562,7 @@ function show(b){
   renderRows();
 }
 function filled(){return bill.rows.filter(function(r){return r.item||num(r.rate)||num(r.qty)})}
-$('newbill').addEventListener('click',function(){show(blank());say('');$('main').scrollTop=0});
+$('newbill').addEventListener('click',function(){show(blank());say('');$('main').scrollTop=0;if(document.body.classList.contains('kb'))setActive({k:'party'})});
 function asText(){
   var L=[bill.party||'Party',niceDate(bill.date),''];
   filled().forEach(function(r,i){L.push((i+1)+'. '+(r.item||'Item')+' : '+fmt(num(r.rate))+' x '+fmt(num(r.qty))+' = '+fmt(sub(r)))});
@@ -554,7 +598,9 @@ function listen(){
     store.bills=snap.docs.map(function(d){var o=d.data()||{};return {id:d.id,party:o.party,date:o.date,rows:o.rows,transport:o.transport,grand:o.grand,savedAt:o.savedAt}});
     if(snap.metadata.fromCache&&snap.empty&&navigator.onLine!==false&&document.body.classList.contains('out'))return;
     store.note=snap.metadata.fromCache?'Showing bills kept on this device. They sync when you are online.':'';
+    var wasOut=document.body.classList.contains('out');
     setOut(false);gate(false);$('loginmsg').textContent='';markReady();
+    if(wasOut&&document.body.classList.contains('kb')&&!active&&!bill.party)setActive({k:'party'});
     if(!ownerChecked){ownerChecked=true;loadStaff()}
   },function(err){
     if(err&&err.code==='permission-denied'&&user){
