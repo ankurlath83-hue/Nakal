@@ -75,6 +75,8 @@ h2{font-size:var(--t3);margin:var(--s1) 0 var(--s3)}
 .btn.green:active,.btn.red:active{opacity:.85}
 .btn.ghost{background:none;border-color:transparent;color:var(--mut);min-height:44px}
 .btn.wide{width:100%}
+.pwin{width:100%;min-height:48px;padding:0 var(--s3);border-radius:12px;background:var(--card);border:1px solid var(--line);color:var(--ink);font:inherit;font-size:var(--t2);user-select:text;-webkit-user-select:text}
+.pwin:focus{outline:none;border-color:var(--acc);box-shadow:0 0 0 2px var(--acc)}
 .btn[disabled]{opacity:.45;pointer-events:none}
 .btn.busy{pointer-events:none;opacity:.7}
 .btn.busy::after{content:"";width:16px;height:16px;border:2px solid currentColor;border-right-color:transparent;border-radius:50%;animation:spin .7s linear infinite}
@@ -272,7 +274,7 @@ body.desk #kb .keys.hidek{display:none}
   <nav id="nav" class="hide"></nav>
 </div>
 <input type="file" id="file" accept=".json,application/json" class="hide">
-<input type="file" id="csvfile" accept=".csv,text/csv,text/plain" class="hide">
+<input type="file" id="csvfile" accept=".csv,.nkbackup,text/csv,text/plain,application/octet-stream" class="hide">
 
 <script>
 "use strict";
@@ -343,7 +345,9 @@ en:{
   gAs:"Signed in as {0}", gOut:"Sign out", gOutAsk:"Sign out of Google?", gOutSub:"This device keeps its data. It just stops saving to your Google account.",
   gFail:"Google sign-in did not work. Check your internet and try again.", gNoBook:"Signed in. Your book will be saved to your Google account.",
   gSaved:"Signed in. Your book is now saved to your Google account.", gFound:"Your book was found. Enter its PIN.", gConnecting:"Connecting...", itemsBtn:"Add items, qty and rate ›", replacesEntry:"This bill will replace the ledger bill of {0} on {1}.",
-  importCsv:"Import entries (CSV)", importT:"Import entries", importS:"{0} entries for {1} parties.", importTot:"Paid {0} · Bill {1}",
+  importCsv:"Import from Hisab Pad or Nakal",
+  nkT:"Nakal backup", nkS:"Type the password you set when you made this backup in Nakal.", nkPh:"Backup password", nkOpen:"Open backup", nkWrong:"That password does not open this backup. Check it and try again.",
+  nkSum:"{0} bills, {1} ledger entries and {2} parties.", nkItems:"{0} items with rates for the catalogue.", nkSkipB:"{0} bills are already in Bahi and will be skipped.", nkYes:"Import from Nakal", nkDone:"Added {0} bills and {1} entries from Nakal.", importT:"Import entries", importS:"{0} entries for {1} parties.", importTot:"Paid {0} · Bill {1}",
   importSkip:"{0} are already in Bahi and will be skipped.", importOdd:"Please check {0} entries with unusual dates:", importYes:"Import {0} entries",
   imported:"{0} entries added.", importNone:"Nothing new to add. These entries are already in Bahi.", importBad:"This file could not be read. Use a CSV with Party, Date, Type and Amount columns.",
   importNewP:"{0} new parties will be added.", gWillSave:"Your book will be saved to your Google account.",
@@ -412,7 +416,9 @@ hi:{
   gAs:"{0} से साइन इन", gOut:"साइन आउट", gOutAsk:"गूगल से साइन आउट करें?", gOutSub:"इस फोन का डेटा रहेगा। बस गूगल खाते में सेव होना बंद होगा।",
   gFail:"गूगल साइन इन नहीं हुआ। इंटरनेट देखकर फिर कोशिश करें।", gNoBook:"साइन इन हो गया। आपकी बही गूगल खाते में सेव होगी।",
   gSaved:"साइन इन हो गया। आपकी बही अब गूगल खाते में सेव है।", gFound:"आपकी बही मिल गई। उसका पिन डालें।", gConnecting:"जुड़ रहा है...", itemsBtn:"सामान, मात्रा और रेट जोड़ें ›", replacesEntry:"यह बिल {1} के {0} वाले खाता बिल की जगह लेगा।",
-  importCsv:"एंट्री लाएं (CSV)", importT:"एंट्री लाएं", importS:"{1} पार्टी की {0} एंट्री।", importTot:"जमा {0} · बिल {1}",
+  importCsv:"हिसाब पैड या नकल से लाएं",
+  nkT:"नकल बैकअप", nkS:"नकल में बैकअप बनाते समय जो पासवर्ड रखा था, वह डालें।", nkPh:"बैकअप पासवर्ड", nkOpen:"बैकअप खोलें", nkWrong:"इस पासवर्ड से बैकअप नहीं खुला। जांच कर फिर डालें।",
+  nkSum:"{0} बिल, {1} खाता एंट्री और {2} पार्टी।", nkItems:"कैटलॉग के लिए {0} सामान और रेट।", nkSkipB:"{0} बिल पहले से बही में हैं, छोड़े जाएंगे।", nkYes:"नकल से लाएं", nkDone:"नकल से {0} बिल और {1} एंट्री जुड़ीं।", importT:"एंट्री लाएं", importS:"{1} पार्टी की {0} एंट्री।", importTot:"जमा {0} · बिल {1}",
   importSkip:"{0} पहले से बही में हैं, उन्हें छोड़ा जाएगा।", importOdd:"इन {0} एंट्री की तारीख जांच लें:", importYes:"{0} एंट्री लाएं",
   imported:"{0} एंट्री जुड़ गईं।", importNone:"कुछ नया नहीं है। ये एंट्री पहले से बही में हैं।", importBad:"यह फाइल नहीं पढ़ी जा सकी। पार्टी, तारीख, टाइप और रकम वाली CSV फाइल चुनें।",
   importNewP:"{0} नई पार्टी जुड़ेंगी।", gWillSave:"आपकी बही गूगल खाते में सेव होगी।",
@@ -1204,6 +1210,17 @@ function renderSheet(){
       ${s.bad.length ? `<p class="sm mut">${s.bad.length} rows could not be read and will be left out.</p>` : ""}
       <div class="acts"><button class="btn" data-act="closeSheet">${t("cancel")}</button><button class="btn pri" data-act="importYes">${t("importYes", pl.add.length)}</button></div>`;
   }
+  else if(s.type==="nkpass") h = `<h3>${t("nkT")}</h3><p class="mut" style="margin:4px 0 12px">${t("nkS")}</p>
+      <input id="nkpw" class="pwin" type="password" autocomplete="off" placeholder="${esc(t("nkPh"))}" onkeydown="if(event.key==='Enter'){event.preventDefault();A.nkOpen(null,document.querySelector('[data-act=nkOpen]'))}">
+      <div class="err" style="margin-top:6px">${esc(s.err||"")}</div>
+      <div class="acts" style="margin-top:6px"><button class="btn" data-act="closeSheet">${t("cancel")}</button><button class="btn pri" data-act="nkOpen">${t("nkOpen")}</button></div>`;
+  else if(s.type==="nkimport"){
+    const pl = s.plan;
+    h = `<h3>${t("nkT")}</h3><p class="mut" style="margin:4px 0 0">${t("nkSum", pl.bills.length, pl.ents.length, pl.partyCount)}</p>
+      ${pl.newItems ? `<p class="sm mut">${t("nkItems", pl.newItems)}</p>` : ""}
+      ${pl.skipB ? `<p class="sm mut">${t("nkSkipB", pl.skipB)}</p>` : ""}${pl.skipE ? `<p class="sm mut">${t("importSkip", pl.skipE)}</p>` : ""}
+      <div class="acts"><button class="btn" data-act="closeSheet">${t("cancel")}</button><button class="btn pri" data-act="nkYes" ${pl.bills.length||pl.ents.length||pl.newItems?"":"disabled"}>${t("nkYes")}</button></div>`;
+  }
   else if(s.type==="gchoice") h = `<h3>${esc(s.title)}</h3><p class="mut">${esc(s.sub)}</p>
       <button class="btn pri wide mt3" data-act="gUseCloud">${t("gUseCloud")}</button><button class="btn wide mt2" data-act="gUseLocal">${t("gUseLocal")}</button>`;
   else if(s.type==="eedit"){
@@ -1391,11 +1408,61 @@ function runImport(plan){
   commit(); UI.sheet = null; UI.tab = "parties"; render(); toast(t("imported", plan.add.length), true);
 }
 async function importCsvFile(file){
-  let res = null; try{ res = readLedgerCsv(await file.text()); }catch(e){}
+  let text = ""; try{ text = await file.text(); }catch(e){}
+  if(/^\s*\{/.test(text)){                         // a Nakal backup (.nkbackup) is JSON, not CSV
+    let f = null; try{ f = JSON.parse(text); }catch(e){}
+    if(f && f.app==="nk-backup" && f.salt && f.ct){ openSheet({type:"nkpass", file:f, err:""}); setTimeout(()=>{ const i = $("#nkpw"); if(i) i.focus(); }, 50); return; }
+    if(f && f.app==="bahi") return restoreVault(f);  // a Bahi backup picked here by mistake: restore it the normal way
+    return toast(t("importBad"));
+  }
+  let res = null; try{ res = readLedgerCsv(text); }catch(e){}
   if(!res || !res.rows.length) return toast(t("importBad"));
   const plan = planImport(res.rows);
   if(!plan.add.length) return toast(t("importNone"));
   openSheet({type:"import", plan, bad:res.bad});
+}
+
+/* ---- Import a Nakal 2 backup (.nkbackup) ----
+   The file is locked with the password chosen in Nakal (same AES-256 + PBKDF2 method as Bahi).
+   Inside: records {id, t, d, del}: t "p" party {name, phone, creditDays}, "b" bill {no, partyId, date, rows[{item, qty, rate}], transport},
+   "e" ledger entry {partyId, kind paid|bill, amt, date, note}, "i" item {name, rate, unit}. Deleted records are skipped. */
+function nakalPlan(recs){
+  const live = (recs||[]).filter(r => r && r.d && !r.del);
+  const P = new Map(live.filter(r => r.t==="p").map(r => [r.id, r.d]));
+  const pname = id => ((P.get(id)||{}).name || "").trim();
+  const bills = live.filter(r => r.t==="b" && pname(r.d.partyId)).map(r => {
+    const rows = (r.d.rows||[]).map(x => ({item:String(x.item||"").trim(), qty:num(x.qty), rate:num(x.rate)})).filter(x => x.qty*x.rate > 0);
+    const transport = num(r.d.transport), total = r2(rows.reduce((a,x)=>a + r2(x.qty*x.rate), 0) + transport);
+    return {party:pname(r.d.partyId), date:csvDate(r.d.date) || today(), no:+r.d.no || 0, rows, transport, total};
+  }).filter(b => b.total > 0);
+  const ents = live.filter(r => r.t==="e" && pname(r.d.partyId) && num(r.d.amt) > 0)
+    .map(r => ({party:pname(r.d.partyId), type:r.d.kind==="paid" ? "paid" : "bill", amt:r2(num(r.d.amt)), date:csvDate(r.d.date) || today(), note:String(r.d.note||"").trim()}));
+  const items = live.filter(r => r.t==="i" && r.d.name).map(r => ({name:String(r.d.name).trim(), rate:num(r.d.rate), unit:String(r.d.unit||"").trim()}));
+  const parties = [...P.values()].filter(p => (p.name||"").trim()).map(p => ({name:p.name.trim(), phone:String(p.phone||"").replace(/\D/g,"").slice(-10), credit:p.creditDays==="" || p.creditDays==null ? null : num(p.creditDays)}));
+  // skip bills already in Bahi (same party, date and total), counting repeats
+  const have = new Map(), bk = (pn, d, tot) => [pn.toLowerCase(), d, r2(tot)].join("|");
+  for(const b of S.bills){ const p = partyById(b.pid); if(p){ const k = bk(p.name, b.date, b.total); have.set(k, (have.get(k)||0) + 1); } }
+  const addBills = []; let skipB = 0;
+  for(const b of bills){ const k = bk(b.party, b.date, b.total); if(have.get(k) > 0){ have.set(k, have.get(k)-1); skipB++; } else addBills.push(b); }
+  const ep = planImport(ents);
+  return {bills:addBills, skipB, ents:ep.add, skipE:ep.skip, parties, items,
+    newItems:items.filter(x => !findItem(x.name)).length, partyCount:new Set(parties.map(p=>p.name.toLowerCase())).size};
+}
+function runNakalImport(pl){
+  snap();
+  for(const p of pl.parties){ const ex = findParty(p.name); if(!ex) S.parties.push({id:nid(), name:p.name, phone:p.phone, credit:p.credit}); else if(!ex.phone && p.phone) ex.phone = p.phone; }
+  for(const x of pl.items) if(!findItem(x.name)) S.items.push({id:nid(), name:x.name, rate:x.rate, unit:x.unit});
+  const used = new Set(S.bills.map(b => b.no));
+  for(const b of [...pl.bills].sort((a,c)=> a.date<c.date?-1:a.date>c.date?1:a.no-c.no)){
+    const p = ensureParty(b.party), no = (b.no && !used.has(b.no)) ? b.no : Math.max(S.billSeq, ...used, 0) + 1;
+    used.add(no); S.billSeq = Math.max(S.billSeq, no + 1);
+    const bill = {id:nid(), no, pid:p.id, date:b.date, rows:b.rows, transport:b.transport, tcalc:"", total:b.total};
+    S.bills.push(bill);
+    S.entries.push({id:nid(), pid:p.id, type:"bill", amt:b.total, date:b.date, note:t("billNo", no), billId:bill.id});
+    b.rows.forEach(r => { if(r.item && !findItem(r.item)) S.items.push({id:nid(), name:r.item, rate:r.rate, unit:""}); });
+  }
+  for(const r of pl.ents){ const p = ensureParty(r.party); S.entries.push({id:nid(), pid:p.id, type:r.type, amt:r.amt, date:r.date, note:r.note}); }
+  commit(); UI.sheet = null; UI.tab = "parties"; render(); toast(t("nkDone", pl.bills.length, pl.ents.length), true);
 }
 
 /* ---------------------------------------------------------------
@@ -1580,6 +1647,18 @@ const A = {
   restorePrev(){ restoreVault(ls.get(LS_PREV)); },
   csvPick(){ $("#csvfile").value = ""; $("#csvfile").click(); },
   importYes(){ runImport(UI.sheet.plan); },
+  async nkOpen(_, el){
+    const s = UI.sheet, pw = ($("#nkpw")||{}).value || ""; if(!s || s.type!=="nkpass" || !pw) return;
+    busy(el, true);
+    try{
+      const key = await deriveKey(pw, s.file.salt, s.file.iter || KDF_ITER), payload = await decryptObj(key, s.file);
+      const plan = nakalPlan(payload && payload.recs);
+      if(!plan.bills.length && !plan.ents.length && !plan.newItems){ closeSheet(); return toast(t("importNone")); }
+      openSheet({type:"nkimport", plan});
+    }catch(e){ s.err = t("nkWrong"); renderSheet(); const i = $("#nkpw"); if(i) i.focus(); }
+    busy(el, false);
+  },
+  nkYes(){ runNakalImport(UI.sheet.plan); },
   async gSignIn(_, el){
     busy(el, true);
     try{
