@@ -125,15 +125,19 @@ label.lb{display:block;font-size:var(--t1);color:var(--mut);margin:var(--s3) 2px
 .bal{transition:color .3s}
 .bal.pop{animation:pop .35s}
 @keyframes pop{40%{transform:scale(1.1)}}
-.llist{flex:1;overflow:auto;background:
+.llist{flex:1;overflow:auto;min-height:0;background:
   repeating-linear-gradient(var(--card),var(--card) 47px,var(--line) 47px,var(--line) 48px) local}
+.llist.two{overflow:hidden}   /* each side scrolls on its own, so both show their newest entries */
 /* two sides like a notebook: Paid on the left, Bill on the right */
 .lheads,.lsides{display:grid;grid-template-columns:1fr 1fr}
 .lheads{border-bottom:1px solid var(--line);font-size:var(--t1)}
 .lheads div{display:flex;justify-content:space-between;gap:var(--s2);padding:var(--s1) var(--s3);min-width:0}
 .lheads div + div,.lside + .lside{border-left:2px solid var(--line)}
 .lsides{min-height:100%}
+.llist.two .lsides{height:100%;min-height:0}
 .lside{min-width:0}
+.llist.two .lside{overflow-y:auto;overscroll-behavior:contain;background:
+  repeating-linear-gradient(var(--card),var(--card) 47px,var(--line) 47px,var(--line) 48px) local}
 .lrow{display:grid;grid-template-columns:minmax(0,1fr) auto;column-gap:var(--s2);align-content:center;height:48px;padding:0 var(--s3);font-variant-numeric:tabular-nums;width:100%;text-align:left}
 .lrow .d{font-size:var(--t1);color:var(--mut);white-space:nowrap;overflow:hidden;line-height:1.15}
 .lrow .a{font-weight:700;text-align:right;line-height:1.15}
@@ -268,6 +272,7 @@ body.desk #kb .keys.hidek{display:none}
   <nav id="nav" class="hide"></nav>
 </div>
 <input type="file" id="file" accept=".json,application/json" class="hide">
+<input type="file" id="csvfile" accept=".csv,text/csv,text/plain" class="hide">
 
 <script>
 "use strict";
@@ -337,7 +342,11 @@ en:{
   gSect:"Google account", gSignIn:"Sign in with Google", gSignInSub:"Safe copy, and the same book on your other devices", gHave:"I already use Bahi: sign in with Google",
   gAs:"Signed in as {0}", gOut:"Sign out", gOutAsk:"Sign out of Google?", gOutSub:"This device keeps its data. It just stops saving to your Google account.",
   gFail:"Google sign-in did not work. Check your internet and try again.", gNoBook:"Signed in. Your book will be saved to your Google account.",
-  gSaved:"Signed in. Your book is now saved to your Google account.", gFound:"Your book was found. Enter its PIN.", gConnecting:"Connecting...", gWillSave:"Your book will be saved to your Google account.",
+  gSaved:"Signed in. Your book is now saved to your Google account.", gFound:"Your book was found. Enter its PIN.", gConnecting:"Connecting...",
+  importCsv:"Import entries (CSV)", importT:"Import entries", importS:"{0} entries for {1} parties.", importTot:"Paid {0} · Bill {1}",
+  importSkip:"{0} are already in Bahi and will be skipped.", importOdd:"Please check {0} entries with unusual dates:", importYes:"Import {0} entries",
+  imported:"{0} entries added.", importNone:"Nothing new to add. These entries are already in Bahi.", importBad:"This file could not be read. Use a CSV with Party, Date, Type and Amount columns.",
+  importNewP:"{0} new parties will be added.", gWillSave:"Your book will be saved to your Google account.",
   gTwoT:"Two different books", gTwoS:"Your Google account already has a Bahi book (last saved {0}). This device has a different one. Which one should be used? The other is kept under More as an earlier copy.",
   gBothT:"Changes on two devices", gBothS:"This device and your other device both have new entries since they last matched. Which one should be kept? The other is kept under More as an earlier copy.",
   gUseCloud:"Book from Google account", gUseLocal:"Book on this device", gKept:"Done. The other book is kept under More as an earlier copy.", installApp:"Install on this device", appUpdated:"Bahi updated to version {0}. Your data is safe.", noDue:"No party is overdue. Well done.", noMatch:"Nothing found.",
@@ -402,7 +411,11 @@ hi:{
   gSect:"गूगल खाता", gSignIn:"गूगल से साइन इन करें", gSignInSub:"सुरक्षित कॉपी, और दूसरे फोन/कंप्यूटर पर वही बही", gHave:"मैं पहले से बही चलाता हूं: गूगल से साइन इन करें",
   gAs:"{0} से साइन इन", gOut:"साइन आउट", gOutAsk:"गूगल से साइन आउट करें?", gOutSub:"इस फोन का डेटा रहेगा। बस गूगल खाते में सेव होना बंद होगा।",
   gFail:"गूगल साइन इन नहीं हुआ। इंटरनेट देखकर फिर कोशिश करें।", gNoBook:"साइन इन हो गया। आपकी बही गूगल खाते में सेव होगी।",
-  gSaved:"साइन इन हो गया। आपकी बही अब गूगल खाते में सेव है।", gFound:"आपकी बही मिल गई। उसका पिन डालें।", gConnecting:"जुड़ रहा है...", gWillSave:"आपकी बही गूगल खाते में सेव होगी।",
+  gSaved:"साइन इन हो गया। आपकी बही अब गूगल खाते में सेव है।", gFound:"आपकी बही मिल गई। उसका पिन डालें।", gConnecting:"जुड़ रहा है...",
+  importCsv:"एंट्री लाएं (CSV)", importT:"एंट्री लाएं", importS:"{1} पार्टी की {0} एंट्री।", importTot:"जमा {0} · बिल {1}",
+  importSkip:"{0} पहले से बही में हैं, उन्हें छोड़ा जाएगा।", importOdd:"इन {0} एंट्री की तारीख जांच लें:", importYes:"{0} एंट्री लाएं",
+  imported:"{0} एंट्री जुड़ गईं।", importNone:"कुछ नया नहीं है। ये एंट्री पहले से बही में हैं।", importBad:"यह फाइल नहीं पढ़ी जा सकी। पार्टी, तारीख, टाइप और रकम वाली CSV फाइल चुनें।",
+  importNewP:"{0} नई पार्टी जुड़ेंगी।", gWillSave:"आपकी बही गूगल खाते में सेव होगी।",
   gTwoT:"दो अलग बही", gTwoS:"आपके गूगल खाते में पहले से एक बही है (आखिरी सेव {0})। इस फोन में दूसरी बही है। कौन सी चलानी है? दूसरी 'और' में पिछली कॉपी के रूप में रहेगी।",
   gBothT:"दो फोन पर बदलाव", gBothS:"इस फोन और दूसरे फोन, दोनों में पिछली बार मिलने के बाद नई एंट्री हैं। कौन सी रखनी है? दूसरी 'और' में पिछली कॉपी के रूप में रहेगी।",
   gUseCloud:"गूगल खाते वाली बही", gUseLocal:"इस फोन वाली बही", gKept:"हो गया। दूसरी बही 'और' में पिछली कॉपी के रूप में रखी है।", installApp:"इस फोन/कंप्यूटर पर इंस्टॉल करें", appUpdated:"बही वर्ज़न {0} में अपडेट हुआ। आपका डेटा सुरक्षित है।", noDue:"किसी पार्टी का पेमेंट देरी में नहीं है।", noMatch:"कुछ नहीं मिला।",
@@ -920,7 +933,7 @@ function render(){
     setSync(Cloud.status);
     $("#nav").innerHTML = ["bill","led","parties","more"].map(k => `<button data-act="tab" data-arg="${k}" class="${UI.tab===k?"on":""}">${ICON[k]}<span>${t(k==="led"?"ledger":k)}</span></button>`).join("");
     if(UI.tab==="bill"){ main.className = "billp"; main.innerHTML = billHTML(); }
-    else if(UI.tab==="led"){ main.className = "led"; main.innerHTML = ledgerHTML(); const l = $(".llist"); if(l) l.scrollTop = l.scrollHeight; }
+    else if(UI.tab==="led"){ main.className = "led"; main.innerHTML = ledgerHTML(); const l = $(".llist"); if(l){ if($(".lsides", l)) l.classList.add("two"); l.scrollTop = l.scrollHeight; $$(".lside", l).forEach(x => x.scrollTop = x.scrollHeight); } }
     else if(UI.tab==="parties") main.innerHTML = partiesHTML();
     else main.innerHTML = moreHTML();
   }
@@ -1109,7 +1122,7 @@ function moreHTML(){
         : (ls.get(LS_G) && !Cloud.checked) ? `<div class="row mut" style="padding:12px 16px;min-height:52px">${t("gConnecting")}</div>`
         : `<button data-act="gSignIn">${t("gSignIn")}<span class="v">${t("gSignInSub")}</span></button>`}</div>` : ""}
     <div class="sect">${t("dataSect")}</div>
-    <div class="card menu"><button data-act="backup">${t("backup")}<span class="v">${S.lastBackup ? fdate(S.lastBackup) : t("never")}</span></button><button data-act="restorePick">${t("restore")}</button>${(()=>{ const pv = ls.get(LS_PREV); return pv ? `<button data-act="restorePrev">${t("prevData")}<span class="v">${fdate(iso(new Date(pv.savedAt||pv.rev)))}</span></button>` : ""; })()}<button data-act="csv" data-arg="ledger">${t("csvLedger")}</button><button data-act="csv" data-arg="bills">${t("csvBills")}</button></div>
+    <div class="card menu"><button data-act="backup">${t("backup")}<span class="v">${S.lastBackup ? fdate(S.lastBackup) : t("never")}</span></button><button data-act="restorePick">${t("restore")}</button>${(()=>{ const pv = ls.get(LS_PREV); return pv ? `<button data-act="restorePrev">${t("prevData")}<span class="v">${fdate(iso(new Date(pv.savedAt||pv.rev)))}</span></button>` : ""; })()}<button data-act="csvPick">${t("importCsv")}</button><button data-act="csv" data-arg="ledger">${t("csvLedger")}</button><button data-act="csv" data-arg="bills">${t("csvBills")}</button></div>
     <div class="sect">${t("settings")}</div>
     <div class="card menu"><button data-act="editBiz">${t("bizName")}<span class="v">${esc(S.biz.name)}</span></button>
       <button data-act="cycle" data-arg="lang">${t("language")}<span class="v">${LANG==="hi"?"हिंदी":"English"}</span></button>
@@ -1178,6 +1191,15 @@ function renderSheet(){
     h = `<h3>${esc(p.name)}</h3><div class="mut">${fdate(e.date,true)} · ${esc(e.note||"")}</div><div class="${e.type==="bill"?"r":"g"} mid">${t(e.type==="bill"?"billed":"paid")} ${money(e.amt)}</div>
       <div class="acts">${e.billId?`<button class="btn" data-act="openBill" data-arg="${e.billId}">${t("openBill")}</button>`:`<button class="btn" data-act="editEntry" data-arg="${e.id}">${t("edit")}</button>`}<button class="btn red" data-act="delEntry" data-arg="${e.id}">${t("del")}</button></div>
       <button class="btn ghost wide" data-act="closeSheet">${t("cancel")}</button>`;
+  }
+  else if(s.type==="import"){
+    const pl = s.plan;
+    h = `<h3>${t("importT")}</h3><p class="mut" style="margin:4px 0 0">${t("importS", pl.add.length, pl.parties)}</p>
+      <div class="card" style="padding:12px 16px;margin-top:12px"><div class="row"><span class="g sp">${t("paid")} ${money(pl.paid)}</span><span class="r">${t("billed")} ${money(pl.bill)}</span></div></div>
+      ${pl.newP ? `<p class="sm mut">${t("importNewP", pl.newP)}</p>` : ""}${pl.skip ? `<p class="sm mut">${t("importSkip", pl.skip)}</p>` : ""}
+      ${pl.odd.length ? `<p class="sm" style="color:var(--acc);margin-bottom:4px">${t("importOdd", pl.odd.length)}</p><div class="sm mut">${pl.odd.slice(0,6).map(r=>`${esc(r.party)} · ${fdate(r.date,true)} · ${money(r.amt)}`).join("<br>")}</div>` : ""}
+      ${s.bad.length ? `<p class="sm mut">${s.bad.length} rows could not be read and will be left out.</p>` : ""}
+      <div class="acts"><button class="btn" data-act="closeSheet">${t("cancel")}</button><button class="btn pri" data-act="importYes">${t("importYes", pl.add.length)}</button></div>`;
   }
   else if(s.type==="gchoice") h = `<h3>${esc(s.title)}</h3><p class="mut">${esc(s.sub)}</p>
       <button class="btn pri wide mt3" data-act="gUseCloud">${t("gUseCloud")}</button><button class="btn wide mt2" data-act="gUseLocal">${t("gUseLocal")}</button>`;
@@ -1302,6 +1324,75 @@ let jspdfLoad = null;
 function loadJsPdf(){ return jspdfLoad || (jspdfLoad = new Promise((res,rej)=>{ const s = document.createElement("script"); s.src = "https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"; s.onload = ()=>res(window.jspdf.jsPDF); s.onerror = ()=>{ jspdfLoad = null; rej(); }; document.head.appendChild(s); })); }
 async function copyText(txt){ try{ await navigator.clipboard.writeText(txt); toast(t("copied")); }catch(e){ toast(t("copyFail")); } }
 function csvLine(a){ return a.map(v => { v = String(v==null?"":v); return /[",\n]/.test(v) ? '"'+v.replace(/"/g,'""')+'"' : v; }).join(","); }
+
+/* ---- Import a ledger CSV (Hisab Pad export, or Bahi's own ledger export) ----
+   Columns are found by name: Party, Date, Type (Paid/Bill), Amount, Note, Struck out.
+   Dates may be 12.11.26, 12/11/2026 or 2026-11-12. Struck-out rows are left out.
+   Importing the same file twice adds nothing the second time. */
+function parseCsv(text){
+  const rows = []; let row = [], cell = "", q = false;
+  for(let i=0;i<text.length;i++){
+    const c = text[i];
+    if(q){ if(c==='"'){ if(text[i+1]==='"'){ cell += '"'; i++; } else q = false; } else cell += c; }
+    else if(c==='"') q = true;
+    else if(c===","){ row.push(cell); cell = ""; }
+    else if(c==="\n" || c==="\r"){ if(c==="\r" && text[i+1]==="\n") i++; row.push(cell); rows.push(row); row = []; cell = ""; }
+    else cell += c;
+  }
+  if(cell || row.length){ row.push(cell); rows.push(row); }
+  return rows.filter(r => r.some(x => x.trim()));
+}
+function csvDate(s){
+  s = String(s||"").trim(); let m;
+  if((m = s.match(/^(\d{4})-(\d{1,2})-(\d{1,2})$/))) return `${m[1]}-${pad2(+m[2])}-${pad2(+m[3])}`;
+  if((m = s.match(/^(\d{1,2})[.\/-](\d{1,2})[.\/-](\d{2}|\d{4})$/))){
+    const d = +m[1], mo = +m[2], y = m[3].length===2 ? 2000 + +m[3] : +m[3];
+    if(mo<1 || mo>12 || d<1 || d>new Date(y, mo, 0).getDate()) return null;
+    return `${y}-${pad2(mo)}-${pad2(d)}`;
+  }
+  return null;
+}
+function readLedgerCsv(text){
+  const rows = parseCsv(text.replace(/^\ufeff/, "")); if(rows.length < 2) return null;
+  const head = rows[0].map(h => h.trim().toLowerCase());
+  const col = names => head.findIndex(h => names.includes(h));
+  const cP = col(["party","party name","name"]), cD = col(["date"]), cT = col(["type"]), cA = col(["amount","amt"]), cN = col(["note","notes"]), cS = col(["struck out","struck","deleted"]);
+  if(cP<0 || cD<0 || cT<0 || cA<0) return null;
+  const out = [], bad = [];
+  for(const r of rows.slice(1)){
+    const party = (r[cP]||"").trim(), type = (r[cT]||"").trim().toLowerCase(), amt = r2(num(r[cA])), date = csvDate(r[cD]);
+    if(cS>=0 && /^(yes|y|true|1|struck|x)$/i.test((r[cS]||"").trim())) continue;
+    const ty = /^(paid|jama|जमा|credit|cr)$/.test(type) ? "paid" : /^(bill|बिल|debit|dr)$/.test(type) ? "bill" : null;
+    if(!party || !ty || !(amt>0) || !date){ bad.push(r.join(", ")); continue; }
+    out.push({party, type:ty, amt, date, note:cN>=0 ? (r[cN]||"").trim() : ""});
+  }
+  return {rows:out, bad};
+}
+/** Work out what an import would add, without changing anything. */
+function planImport(list){
+  const key = (pname, e) => [pname.trim().toLowerCase(), e.date, e.type, e.amt, (e.note||"").trim().toLowerCase()].join("|");
+  const have = new Map();
+  for(const e of S.entries){ const p = partyById(e.pid); if(!p) continue; const k = key(p.name, e); have.set(k, (have.get(k)||0) + 1); }
+  const add = []; let skip = 0;
+  for(const r of list){ const k = key(r.party, r); if(have.get(k) > 0){ have.set(k, have.get(k)-1); skip++; } else add.push(r); }
+  const now = today(), odd = add.filter(r => r.date < "2015-01-01" || r.date > now);
+  const newP = new Set(add.filter(r => !findParty(r.party)).map(r => r.party.trim().toLowerCase())).size;
+  const parties = new Set(list.map(r => r.party.trim().toLowerCase())).size;
+  return {add, skip, odd, newP, parties, total:list.length,
+    paid:r2(add.filter(r=>r.type==="paid").reduce((a,r)=>a+r.amt,0)), bill:r2(add.filter(r=>r.type==="bill").reduce((a,r)=>a+r.amt,0))};
+}
+function runImport(plan){
+  snap();
+  for(const r of plan.add){ const p = ensureParty(r.party); S.entries.push({id:nid(), pid:p.id, type:r.type, amt:r.amt, date:r.date, note:r.note}); }
+  commit(); UI.sheet = null; UI.tab = "parties"; render(); toast(t("imported", plan.add.length), true);
+}
+async function importCsvFile(file){
+  let res = null; try{ res = readLedgerCsv(await file.text()); }catch(e){}
+  if(!res || !res.rows.length) return toast(t("importBad"));
+  const plan = planImport(res.rows);
+  if(!plan.add.length) return toast(t("importNone"));
+  openSheet({type:"import", plan, bad:res.bad});
+}
 
 /* ---------------------------------------------------------------
    10. ACTIONS. Every button calls one of these by name (data-act).
@@ -1476,6 +1567,8 @@ const A = {
   pFilter(k){ UI.pf = k; render(); },
   restorePick(){ $("#file").value = ""; $("#file").click(); },
   restorePrev(){ restoreVault(ls.get(LS_PREV)); },
+  csvPick(){ $("#csvfile").value = ""; $("#csvfile").click(); },
+  importYes(){ runImport(UI.sheet.plan); },
   async gSignIn(_, el){
     busy(el, true);
     try{
@@ -1619,6 +1712,7 @@ document.addEventListener("keydown", e => {
   }
 });
 $("#file").addEventListener("change", e => { const f = e.target.files[0]; if(f) restoreFile(f); });
+$("#csvfile").addEventListener("change", e => { const f = e.target.files[0]; if(f) importCsvFile(f); });
 
 /* ---- Start-up ---- */
 function boot(){
