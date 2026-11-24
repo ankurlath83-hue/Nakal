@@ -3,7 +3,7 @@
 window.NK = window.NK || {};
 NK.cfg = {
   appName: "Nakal",          // the one place to change the app's name
-  version: "2.0.0",
+  version: "2.0.1",
   firebase: {
     apiKey: "AIzaSyDkPlNia17RW8_xpMvp9nosAQOgk594q3Y",
     authDomain: "nakal-cdb66.firebaseapp.com",

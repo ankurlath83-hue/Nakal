@@ -12,15 +12,32 @@
 
   /* Hand a file (picture, PDF, CSV, backup) to the phone's share sheet, or download it on a laptop. */
   H.file = function (blob, name) {
-    var cap = globalThis.Capacitor, P = cap && cap.isNativePlatform && cap.isNativePlatform() ? cap.Plugins : null;
-    if (P && P.Filesystem && P.Share) {
-      return blob.arrayBuffer().then(function (b) { return P.Filesystem.writeFile({ path: name, data: NK.b64(b), directory: 'CACHE' }); })
-        .then(function (r) { return P.Share.share({ title: name, url: r.uri }); }).catch(function () {});
+    var cap = globalThis.Capacitor, native = cap && cap.isNativePlatform && cap.isNativePlatform(), P = native ? cap.Plugins : null;
+    function say(k, v, bad) { NK.ui.toast(t(k, v), { bad: bad }); }
+    function download() {
+      var a = document.createElement('a'); a.href = URL.createObjectURL(blob); a.download = name; document.body.appendChild(a); a.click();
+      setTimeout(function () { URL.revokeObjectURL(a.href); a.remove(); }, 4000);
+      say('file_dl', { name: name });
+    }
+    if (native) {
+      if (!P || !P.Filesystem) { say('file_fail', { why: 'no file plugin' }, true); return Promise.resolve(); }
+      /* Android app: first keep a copy in the phone's Documents > Nakal folder, so the file exists
+         even if the share sheet does not open. Then offer the share sheet as well. */
+      return blob.arrayBuffer().then(function (buf) {
+        var data = NK.b64(buf), saved = false;
+        return P.Filesystem.writeFile({ path: 'Nakal/' + name, data: data, directory: 'DOCUMENTS', recursive: true })
+          .then(function () { saved = true; say('file_saved', { name: name }); }, function () {})
+          .then(function () { return P.Filesystem.writeFile({ path: name, data: data, directory: 'CACHE' }); })
+          .then(function (r) { if (!P.Share) throw new Error('no share plugin'); return P.Share.share({ title: name, url: r.uri, files: [r.uri] }); })
+          .catch(function (e) { var m = String(e && e.message || e); if (!saved && !/cancel/i.test(m)) say('file_fail', { why: m }, true); });
+      });
     }
     var f = null; try { f = new File([blob], name, { type: blob.type }); } catch (e) {}
-    if (!NK.kp.desk() && f && navigator.canShare && navigator.canShare({ files: [f] })) return navigator.share({ files: [f], title: name }).catch(function () {});
-    var a = document.createElement('a'); a.href = URL.createObjectURL(blob); a.download = name; document.body.appendChild(a); a.click();
-    setTimeout(function () { URL.revokeObjectURL(a.href); a.remove(); }, 4000);
+    if (!NK.kp.desk() && f && navigator.canShare && navigator.canShare({ files: [f] })) {
+      /* If the phone refuses to open the share sheet, save to Downloads instead of doing nothing. */
+      return navigator.share({ files: [f], title: name }).catch(function (e) { if (!e || e.name !== 'AbortError') download(); });
+    }
+    download();
     return Promise.resolve();
   };
 

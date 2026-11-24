@@ -1,6 +1,6 @@
 /* OFFLINE: keeps a copy of the app's own files so it opens with no internet.
    Only the app's files are cached here; your book is stored separately, encrypted. */
-var V = 'nk-2.0.0';
+var V = 'nk-2.0.1';
 var FILES = ['./', 'index.html', 'config.js', 'manifest.json', 'icon-192.png', 'icon-512.png', 'css/app.css',
   'js/core.js', 'js/i18n.js', 'js/calc.js', 'js/security.js', 'js/store.js', 'js/keypad.js', 'js/ui.js', 'js/sync.js', 'js/share.js',
   'js/bills.js', 'js/ledger.js', 'js/parties.js', 'js/catalogue.js', 'js/reports.js', 'js/more.js', 'js/app.js',
