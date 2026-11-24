@@ -342,7 +342,7 @@ en:{
   gSect:"Google account", gSignIn:"Sign in with Google", gSignInSub:"Safe copy, and the same book on your other devices", gHave:"I already use Bahi: sign in with Google",
   gAs:"Signed in as {0}", gOut:"Sign out", gOutAsk:"Sign out of Google?", gOutSub:"This device keeps its data. It just stops saving to your Google account.",
   gFail:"Google sign-in did not work. Check your internet and try again.", gNoBook:"Signed in. Your book will be saved to your Google account.",
-  gSaved:"Signed in. Your book is now saved to your Google account.", gFound:"Your book was found. Enter its PIN.", gConnecting:"Connecting...",
+  gSaved:"Signed in. Your book is now saved to your Google account.", gFound:"Your book was found. Enter its PIN.", gConnecting:"Connecting...", itemsBtn:"Add items, qty and rate ›", replacesEntry:"This bill will replace the ledger bill of {0} on {1}.",
   importCsv:"Import entries (CSV)", importT:"Import entries", importS:"{0} entries for {1} parties.", importTot:"Paid {0} · Bill {1}",
   importSkip:"{0} are already in Bahi and will be skipped.", importOdd:"Please check {0} entries with unusual dates:", importYes:"Import {0} entries",
   imported:"{0} entries added.", importNone:"Nothing new to add. These entries are already in Bahi.", importBad:"This file could not be read. Use a CSV with Party, Date, Type and Amount columns.",
@@ -411,7 +411,7 @@ hi:{
   gSect:"गूगल खाता", gSignIn:"गूगल से साइन इन करें", gSignInSub:"सुरक्षित कॉपी, और दूसरे फोन/कंप्यूटर पर वही बही", gHave:"मैं पहले से बही चलाता हूं: गूगल से साइन इन करें",
   gAs:"{0} से साइन इन", gOut:"साइन आउट", gOutAsk:"गूगल से साइन आउट करें?", gOutSub:"इस फोन का डेटा रहेगा। बस गूगल खाते में सेव होना बंद होगा।",
   gFail:"गूगल साइन इन नहीं हुआ। इंटरनेट देखकर फिर कोशिश करें।", gNoBook:"साइन इन हो गया। आपकी बही गूगल खाते में सेव होगी।",
-  gSaved:"साइन इन हो गया। आपकी बही अब गूगल खाते में सेव है।", gFound:"आपकी बही मिल गई। उसका पिन डालें।", gConnecting:"जुड़ रहा है...",
+  gSaved:"साइन इन हो गया। आपकी बही अब गूगल खाते में सेव है।", gFound:"आपकी बही मिल गई। उसका पिन डालें।", gConnecting:"जुड़ रहा है...", itemsBtn:"सामान, मात्रा और रेट जोड़ें ›", replacesEntry:"यह बिल {1} के {0} वाले खाता बिल की जगह लेगा।",
   importCsv:"एंट्री लाएं (CSV)", importT:"एंट्री लाएं", importS:"{1} पार्टी की {0} एंट्री।", importTot:"जमा {0} · बिल {1}",
   importSkip:"{0} पहले से बही में हैं, उन्हें छोड़ा जाएगा।", importOdd:"इन {0} एंट्री की तारीख जांच लें:", importYes:"{0} एंट्री लाएं",
   imported:"{0} एंट्री जुड़ गईं।", importNone:"कुछ नया नहीं है। ये एंट्री पहले से बही में हैं।", importBad:"यह फाइल नहीं पढ़ी जा सकी। पार्टी, तारीख, टाइप और रकम वाली CSV फाइल चुनें।",
@@ -1026,12 +1026,15 @@ function applyPrefs(){
 /* ---- Bill screen ---- */
 function billHTML(){
   if(D.bill.id!=null && !S.bills.find(x=>x.id===D.bill.id)) D.bill = blankBill();   // the bill being edited no longer exists
+  if(D.bill.fromEntry && !S.entries.find(x=>x.id===D.bill.fromEntry)) delete D.bill.fromEntry;   // that ledger entry is gone
   const b = D.bill, ed = b.id!=null, saved = ed ? S.bills.find(x=>x.id===b.id) : null;
+  const fe = b.fromEntry ? S.entries.find(x=>x.id===b.fromEntry) : null;
   const tip = (!S.tipDone && !ed) ? `<div class="tip"><div>${t("tip1")}<br>${t("tip2")}<br>${t("tip3")}</div><button class="xbtn" data-act="tipOff" aria-label="Close">×</button></div>` : "";
   const nudge = (!ed && S.entries.length >= 10 && S.nudgeOff!==today() && (!S.lastBackup || dayDiff(S.lastBackup, today()) >= 7))
     ? `<div class="nudge"><div class="sp">${t("backupNudge", S.lastBackup ? fdate(S.lastBackup) : t("never"))}</div><button class="btn pri" data-act="backup">${t("save")}</button><button class="xbtn" data-act="nudgeOff" aria-label="Close">×</button></div>` : "";
   return `${tip}${nudge}<div class="row"><h2 style="margin:0">${ed ? t("billNo", saved.no) : t("newBill")}</h2><span class="sp"></span>
     ${ed ? `<button class="chip" data-act="newBill">${t("newBill")}</button>` : ""}<button class="chip" data-act="goBills">${t("savedBills")}</button></div>
+    ${fe ? `<div class="tip mt3"><div>${t("replacesEntry", money(fe.amt), fdate(fe.date,true))}</div><button class="xbtn" data-act="newBill" aria-label="Cancel">×</button></div>` : ""}
     <div class="row mt3"><div class="sp">${fld("bill.party","text",t("party"))}</div><button class="datechip ${b.date!==today()?"old":""}" data-act="pickDate" data-arg="bill.date">${fdate(b.date)}</button></div>
     <div class="bhead"><span>${t("item")}</span><span>${t("qty")}</span><span>${t("rate")}</span><span>${t("amount")}</span><span></span></div>
     ${b.rows.map((r,i)=>`<div class="brow">${fld(`bill.rows.${i}.item`,"text",t("item"))}${fld(`bill.rows.${i}.qty`,"num","0")}${fld(`bill.rows.${i}.rate`,"num","0")}<div class="sub" id="sub${i}"></div>${b.rows.length>1?`<button class="xbtn" data-act="delRow" data-arg="${i}" aria-label="Remove">×</button>`:"<span></span>"}</div>`).join("")}
@@ -1210,7 +1213,8 @@ function renderSheet(){
       <div class="row mt3"><button class="btn sp ${ty==="paid"?"green":""}" data-act="editType" data-arg="paid">${t("paid")}</button><button class="btn sp ${ty==="bill"?"red":""}" data-act="editType" data-arg="bill">${t("billed")}</button></div>
       <div class="row mt2"><div class="sp">${fld("edit.amt","num",t("amount"))}</div><button class="datechip ${D.edit.date!==today()?"old":""}" data-act="pickDate" data-arg="edit.date">${fdate(D.edit.date)}</button></div>
       <div class="mt2">${fld("edit.note","text",t("note"))}</div>
-      <div class="acts"><button class="btn" data-act="closeSheet">${t("cancel")}</button><button class="btn pri" data-act="saveEntry" data-enter>${t("save")}</button></div>`;
+      ${ty==="bill" ? `<button class="btn ghost" style="min-height:44px;padding:0 4px;color:var(--acc)" data-act="entryToBill">${t("itemsBtn")}</button>` : ""}
+      <div class="acts" ${ty==="bill"?'style="margin-top:4px"':""}><button class="btn" data-act="closeSheet">${t("cancel")}</button><button class="btn pri" data-act="saveEntry" data-enter>${t("save")}</button></div>`;
   }
   else if(s.type==="share"){
     h = `<h3>${esc(s.title)}</h3><pre id="sharetext" class="sharetext">${esc(s.text)}</pre>
@@ -1455,6 +1459,7 @@ const A = {
     const b = {id:nid(), no:S.billSeq++, pid:p.id, date:d.date, rows, transport, tcalc, total};
     S.bills.push(b);
     S.entries.push({id:nid(), pid:p.id, type:"bill", amt:total, date:d.date, note:t("billNo", b.no), billId:b.id});
+    if(d.fromEntry) S.entries = S.entries.filter(x => x.id!==d.fromEntry);   // the itemised bill takes the place of the plain ledger entry
     S.tipDone = true; UI.pid = p.id; commit();
     D.bill = blankBill(); render();
     toast(t("billSaved", money(total), p.name), true);
@@ -1480,6 +1485,12 @@ const A = {
   entryMenu(id){ openSheet({type:"emenu", id:+id}); },
   editEntry(id){ const e = S.entries.find(x=>x.id===+id); if(!e || e.billId) return; D.edit = {amt:String(e.amt), note:e.note||"", date:e.date, type:e.type}; openSheet({type:"eedit", id:e.id, focus:"edit.amt"}); },
   editType(k){ D.edit.type = k; const f = F && F.path; render(); if(f) focusField(f); },
+  entryToBill(){
+    const e = S.entries.find(x=>x.id===UI.sheet.id); if(!e) return closeSheet();
+    const p = partyById(e.pid);
+    D.bill = {...blankBill(), party:p.name, date:D.edit.date || e.date, fromEntry:e.id};
+    UI.sheet = null; UI.tab = "bill"; F = null; render(); focusField("bill.rows.0.item");
+  },
   saveEntry(){
     const e = S.entries.find(x=>x.id===UI.sheet.id), amt = r2(num(D.edit.amt));
     if(!e) return closeSheet();
