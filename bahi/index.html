@@ -1,0 +1,1523 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no">
+<meta name="theme-color" content="#1E2740">
+<link rel="manifest" href="manifest.webmanifest">
+<link rel="icon" href="icon-192.png">
+<link rel="apple-touch-icon" href="icon-192.png">
+<meta name="mobile-web-app-capable" content="yes">
+<title>Bahi - Bills and Ledger</title>
+<style>
+/* ============================================================
+   DESIGN RULES (keep to these when adding anything)
+   Spacing: 4 8 12 16 24 32 only (--s1 .. --s6)
+   Text:    14 small labels, 16 body, 20 titles, 32 key numbers
+   Touch:   everything you can press is at least 44px tall
+   ============================================================ */
+:root{
+  --s1:4px; --s2:8px; --s3:12px; --s4:16px; --s5:24px; --s6:32px;
+  --t1:14px; --t2:16px; --t3:20px; --t4:32px;
+  --bg:#F6F1E4; --card:#FFFDF6; --ink:#1E2740; --mut:#6F6A5C; --line:#E2D8C2;
+  --green:#157F43; --greenbg:#E3F3E7; --red:#C2352B; --redbg:#FBE6E2;
+  --pri:#1E2740; --prit:#FFFDF6; --acc:#D9831F; --key:#FFFDF6; --keyd:#EDE5D2;
+  --shadow:0 1px 2px rgba(30,39,64,.08),0 4px 16px rgba(30,39,64,.06);
+}
+[data-theme=dark]{
+  --bg:#14161B; --card:#1D2027; --ink:#EEE8DA; --mut:#A29E92; --line:#30343E;
+  --green:#4CC38A; --greenbg:#17332A; --red:#FF7B6B; --redbg:#3A1F1E;
+  --pri:#EEE8DA; --prit:#14161B; --acc:#F0A54A; --key:#262A33; --keyd:#30343E;
+  --shadow:0 1px 2px rgba(0,0,0,.4);
+}
+*{box-sizing:border-box;-webkit-tap-highlight-color:transparent}
+html,body{height:100%;margin:0}
+body{background:var(--bg);color:var(--ink);font:var(--t2)/1.35 system-ui,-apple-system,"Segoe UI",Roboto,"Noto Sans","Noto Sans Devanagari",sans-serif;
+  user-select:none;-webkit-user-select:none;overscroll-behavior:none}
+button{font:inherit;color:inherit;border:0;background:none;padding:0;cursor:pointer}
+a{color:inherit;text-decoration:none}
+
+/* ---------- App frame ---------- */
+#app{height:100dvh;max-width:560px;margin:0 auto;display:flex;flex-direction:column;background:var(--bg);position:relative;overflow:hidden}
+header{display:flex;align-items:center;gap:var(--s3);padding:var(--s2) var(--s4);border-bottom:1px solid var(--line)}
+header .biz{font-weight:700;font-size:var(--t3);flex:1;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+header .sync{font-size:var(--t1);color:var(--mut);display:flex;align-items:center;gap:var(--s1);white-space:nowrap}
+header .sync i{width:8px;height:8px;border-radius:50%;background:var(--green);display:inline-block}
+header .sync.warn i{background:var(--acc)}
+.iconbtn{width:44px;height:44px;border-radius:12px;display:grid;place-items:center;background:var(--card);border:1px solid var(--line);flex:none}
+#stage{flex:1;position:relative;overflow:hidden}
+#main{position:absolute;inset:0;overflow:auto;padding:var(--s3) var(--s4) var(--s5)}
+#main.led{display:flex;flex-direction:column;padding:0;overflow:hidden}
+#main.billp{padding-bottom:0}
+nav{display:flex;border-top:1px solid var(--line);background:var(--card)}
+nav button{flex:1;min-height:56px;padding:var(--s2) 0;font-size:var(--t1);color:var(--mut);display:flex;flex-direction:column;align-items:center;gap:2px;transition:color .15s}
+nav button svg{width:24px;height:24px}
+nav button.on{color:var(--ink);font-weight:700}
+.hide{display:none!important}
+
+/* ---------- Common pieces ---------- */
+h2{font-size:var(--t3);margin:var(--s1) 0 var(--s3)}
+.mut{color:var(--mut)} .sm{font-size:var(--t1)} .g{color:var(--green)} .r{color:var(--red)}
+.big{font-size:var(--t4);font-weight:800;font-variant-numeric:tabular-nums;line-height:1.1}
+.mid{font-size:var(--t3);font-weight:800;font-variant-numeric:tabular-nums}
+.row{display:flex;align-items:center;gap:var(--s2)}
+.sp{flex:1;min-width:0}
+.row.wrap{flex-wrap:wrap}
+.mt2{margin-top:var(--s2)} .mt3{margin-top:var(--s3)} .mt4{margin-top:var(--s4)} .mt5{margin-top:var(--s5)}
+.card{background:var(--card);border:1px solid var(--line);border-radius:16px;box-shadow:var(--shadow)}
+.btn{display:flex;align-items:center;justify-content:center;gap:var(--s2);min-height:52px;padding:0 var(--s4);border-radius:16px;font-weight:700;
+  background:var(--card);border:1px solid var(--line);transition:transform .08s,background .15s,opacity .15s,box-shadow .15s}
+.btn:active{transform:scale(.97);background:var(--keyd)}
+.btn.pri{background:var(--pri);color:var(--prit);border-color:var(--pri)}
+.btn.pri:active{opacity:.85;background:var(--pri)}
+.btn.green{background:var(--green);color:#fff;border-color:var(--green)}
+.btn.red{background:var(--red);color:#fff;border-color:var(--red)}
+.btn.green:active,.btn.red:active{opacity:.85}
+.btn.ghost{background:none;border-color:transparent;color:var(--mut);min-height:44px}
+.btn.wide{width:100%}
+.btn[disabled]{opacity:.45;pointer-events:none}
+.btn.busy{pointer-events:none;opacity:.7}
+.btn.busy::after{content:"";width:16px;height:16px;border:2px solid currentColor;border-right-color:transparent;border-radius:50%;animation:spin .7s linear infinite}
+@keyframes spin{to{transform:rotate(360deg)}}
+.chip{min-height:44px;display:inline-flex;align-items:center;padding:0 var(--s4);border-radius:999px;background:var(--card);border:1px solid var(--line);font-size:var(--t1);white-space:nowrap;transition:background .15s,transform .08s}
+.chip.on{background:var(--pri);color:var(--prit);border-color:var(--pri)}
+.chip:active{transform:scale(.96)}
+.chips{display:flex;gap:var(--s2);overflow-x:auto;padding:2px 0;scrollbar-width:none}
+.chips::-webkit-scrollbar{display:none}
+.badge{font-size:var(--t1);font-weight:700;padding:0 var(--s2);border-radius:999px;background:var(--redbg);color:var(--red)}
+.empty{text-align:center;color:var(--mut);padding:var(--s6) var(--s5)}
+.empty b{display:block;color:var(--ink);font-size:var(--t3);margin-bottom:var(--s1)}
+.xbtn{width:44px;height:44px;display:grid;place-items:center;color:var(--mut);font-size:var(--t3);border-radius:12px;flex:none}
+.xbtn:active{background:var(--keyd)}
+
+/* ---------- Entry fields (the app's own, never a system input) ---------- */
+.fld{min-height:48px;padding:0 var(--s3);border-radius:12px;background:var(--card);border:1px solid var(--line);font-size:var(--t2);
+  white-space:nowrap;overflow:hidden;cursor:text;display:flex;align-items:center;transition:border-color .15s,box-shadow .15s}
+.fld:empty::before{content:attr(data-ph);color:var(--mut);font-weight:400}
+.fld.on{border-color:var(--acc);box-shadow:0 0 0 2px var(--acc)}
+.fld.on::after{content:"";width:2px;height:1.1em;background:var(--acc);margin-left:1px;animation:blink 1s steps(1) infinite}
+@keyframes blink{50%{opacity:0}}
+.fld.num{justify-content:flex-end;font-variant-numeric:tabular-nums}
+.fld.bad{border-color:var(--red);animation:shake .3s}
+@keyframes shake{25%{transform:translateX(-4px)}75%{transform:translateX(4px)}}
+label.lb{display:block;font-size:var(--t1);color:var(--mut);margin:var(--s3) 2px var(--s1)}
+
+/* ---------- Bill screen ---------- */
+.bhead,.brow{display:grid;grid-template-columns:minmax(0,1fr) 56px 56px 70px 44px;gap:var(--s1);align-items:center}
+.bhead{font-size:var(--t1);color:var(--mut);padding:0 2px;margin-top:var(--s4)}
+.bhead span:nth-child(n+2){text-align:right}
+.brow{margin-top:var(--s2)}
+.brow .fld{padding:0 var(--s2);min-height:44px}
+.brow .sub{text-align:right;font-variant-numeric:tabular-nums;font-size:var(--t1);overflow:hidden}
+#main.billp .fld{scroll-margin-bottom:104px}   /* keep the box being typed in clear of the Save bar */
+.keys button[data-k="×"],.keys button[data-k="+"]{font-size:var(--t3)}
+.tot{display:flex;justify-content:space-between;align-items:center;padding:var(--s1) 2px;min-height:32px}
+.bbar{position:sticky;bottom:0;display:flex;align-items:center;gap:var(--s3);margin:var(--s3) calc(-1 * var(--s4)) 0;padding:var(--s2) var(--s4) var(--s3);
+  background:var(--bg);border-top:2px solid var(--ink)}
+.bbar .btn{flex:1;max-width:220px;margin-left:auto}
+.tip{background:var(--card);border:1px dashed var(--acc);border-radius:12px;padding:var(--s2) var(--s1) var(--s2) var(--s3);font-size:var(--t1);display:flex;gap:var(--s2);margin-bottom:var(--s3);align-items:flex-start}
+.tip div{flex:1;padding:var(--s1) 0}
+
+/* ---------- Ledger screen (notebook look) ---------- */
+.ltop{padding:var(--s2) var(--s4);border-bottom:1px solid var(--line)}
+.pname{font-size:var(--t3);font-weight:700;display:flex;align-items:center;gap:var(--s1);min-height:44px;max-width:52%;min-width:0;flex:0 1 auto}
+.pname span{min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.bal{transition:color .3s}
+.bal.pop{animation:pop .35s}
+@keyframes pop{40%{transform:scale(1.1)}}
+.llist{flex:1;overflow:auto;background:
+  repeating-linear-gradient(var(--card),var(--card) 47px,var(--line) 47px,var(--line) 48px) local}
+/* two sides like a notebook: Paid on the left, Bill on the right */
+.lheads,.lsides{display:grid;grid-template-columns:1fr 1fr}
+.lheads{border-bottom:1px solid var(--line);font-size:var(--t1)}
+.lheads div{display:flex;justify-content:space-between;gap:var(--s2);padding:var(--s1) var(--s3);min-width:0}
+.lheads div + div,.lside + .lside{border-left:2px solid var(--line)}
+.lsides{min-height:100%}
+.lside{min-width:0}
+.lrow{display:grid;grid-template-columns:minmax(0,1fr) auto;column-gap:var(--s2);align-content:center;height:48px;padding:0 var(--s3);font-variant-numeric:tabular-nums;width:100%;text-align:left}
+.lrow .d{font-size:var(--t1);color:var(--mut);white-space:nowrap;overflow:hidden;line-height:1.15}
+.lrow .a{font-weight:700;text-align:right;line-height:1.15}
+.lrow .n{grid-column:1/-1;font-size:var(--t1);color:var(--mut);line-height:1.1;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.lrow.new{animation:slidein .35s}
+@keyframes slidein{from{opacity:0;transform:translateY(12px)}}
+.lentry{display:grid;grid-template-columns:auto minmax(0,1fr) minmax(0,1fr);gap:var(--s2);padding:var(--s2) var(--s4);border-top:1px solid var(--line);background:var(--bg)}
+.lentry .amt{font-size:var(--t3);font-weight:800}
+.datechip{display:flex;align-items:center;padding:0 var(--s3);border-radius:12px;background:var(--card);border:1px solid var(--line);font-weight:600;min-height:48px;white-space:nowrap;transition:background .15s}
+.datechip:active{background:var(--keyd)}
+.datechip.old{border-color:var(--acc);color:var(--acc);box-shadow:inset 0 0 0 1px var(--acc)}   /* date is not today: easy to notice */
+.psum{display:grid;grid-template-columns:1fr 1fr;gap:var(--s2);padding:var(--s3) var(--s4);margin-top:var(--s3)}
+.nudge{display:flex;gap:var(--s2);align-items:center;background:var(--card);border:1px solid var(--acc);border-radius:12px;padding:var(--s2) var(--s1) var(--s2) var(--s3);font-size:var(--t1);margin-bottom:var(--s3)}
+.nudge .btn{min-height:44px;padding:0 var(--s3);font-size:var(--t1)}
+
+/* ---------- Party cards and menus ---------- */
+.pcard{padding:var(--s3) var(--s4);margin-top:var(--s2);display:block;width:100%;text-align:left;min-height:48px;transition:background .15s,transform .08s}
+.pcard:active{background:var(--keyd);transform:scale(.99)}
+.pcard .t{display:flex;justify-content:space-between;gap:var(--s3);font-weight:700}
+.pcard .t span:first-child{overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.pcard .s{font-size:var(--t1);color:var(--mut);margin-top:var(--s1);display:flex;gap:var(--s1) var(--s3);flex-wrap:wrap;align-items:center}
+.menu{margin-top:var(--s2);overflow:hidden}
+.menu button,.menu a{display:flex;width:100%;align-items:center;gap:var(--s3);min-height:52px;padding:var(--s2) var(--s4);border-bottom:1px solid var(--line);text-align:left;transition:background .15s}
+.menu > :last-child{border-bottom:0}
+.menu button:active,.menu a:active{background:var(--keyd)}
+.menu .v{margin-left:auto;color:var(--mut);font-size:var(--t1);text-align:right}
+.sect{font-size:var(--t1);font-weight:700;color:var(--mut);margin:var(--s5) var(--s1) 0}
+
+/* ---------- Sheets (bottom dialogs built into the page) ---------- */
+#sheet{position:absolute;inset:0;background:rgba(10,12,20,.45);display:flex;flex-direction:column;justify-content:flex-end;z-index:5}
+#sheet .box{background:var(--bg);border-radius:24px 24px 0 0;padding:var(--s4) var(--s4) var(--s5);max-height:100%;overflow:auto;animation:up .2s}
+@keyframes up{from{transform:translateY(32px);opacity:.5}}
+#sheet h3{margin:0 0 var(--s1);font-size:var(--t3)}
+#sheet .acts{display:flex;gap:var(--s2);margin-top:var(--s4)}
+#sheet .acts .btn{flex:1;min-width:0}
+.sharetext{user-select:text;-webkit-user-select:text;white-space:pre-wrap;font:var(--t1)/1.4 inherit;font-family:inherit;background:var(--card);border:1px solid var(--line);border-radius:12px;padding:var(--s3);max-height:24vh;overflow:auto;margin:var(--s3) 0 0}
+.wheel{display:flex;gap:var(--s2);height:176px;position:relative;margin-top:var(--s3)}
+.wheel::before{content:"";position:absolute;left:0;right:0;top:66px;height:44px;border-radius:12px;background:var(--card);border:1px solid var(--line)}
+.wheel .col{flex:1;overflow-y:auto;scroll-snap-type:y mandatory;position:relative;scrollbar-width:none;text-align:center}
+.wheel .col::-webkit-scrollbar{display:none}
+.wheel .col div{height:44px;line-height:44px;scroll-snap-align:center;font-size:var(--t3);font-weight:600}
+.wheel .col::before,.wheel .col::after{content:"";display:block;height:66px}
+
+/* ---------- Toast: sits over the title bar so it never covers a field or button in use ---------- */
+#toast{position:absolute;left:var(--s2);right:var(--s2);top:var(--s1);min-height:52px;z-index:8;background:var(--ink);color:var(--bg);border-radius:16px;padding:var(--s1) var(--s1) var(--s1) var(--s4);
+  display:flex;align-items:center;gap:var(--s3);box-shadow:var(--shadow);animation:drop .2s}
+@keyframes drop{from{transform:translateY(-16px);opacity:.5}}
+#toast button{margin-left:auto;font-weight:800;color:var(--acc);min-height:44px;min-width:64px;padding:0 var(--s3);border-radius:12px}
+#toast button:active{background:rgba(255,255,255,.12)}
+
+/* ---------- Keypads ---------- */
+#kb{background:var(--keyd);border-top:1px solid var(--line);padding:var(--s2) var(--s2) var(--s2)}
+#sugg{display:flex;gap:var(--s2);overflow-x:auto;padding:0 0 var(--s2);scrollbar-width:none}
+#sugg:empty{display:none}
+#sugg::-webkit-scrollbar{display:none}
+#sugg button{min-height:44px;min-width:48px;padding:0 var(--s3);border-radius:12px;background:var(--card);border:1px solid var(--line);font-size:var(--t1);white-space:nowrap}
+#sugg button:active{background:var(--line)}
+.keys{display:grid;gap:var(--s2)}
+.keys.n{grid-template-columns:repeat(4,1fr)}
+.keys button{height:52px;border-radius:12px;background:var(--key);font-size:var(--t3);font-weight:600;box-shadow:0 1px 0 rgba(0,0,0,.12);touch-action:manipulation;transition:background .08s}
+.keys button:active{background:var(--line);transform:translateY(1px)}
+.keys .fn{font-size:var(--t2);background:var(--bg)}
+.keys .go{background:var(--pri);color:var(--prit);font-size:var(--t2)}
+.keys .paid{background:var(--green);color:#fff;font-size:var(--t2)}
+.keys .bill{background:var(--red);color:#fff;font-size:var(--t2)}
+.keys .go:active,.keys .paid:active,.keys .bill:active{opacity:.8}
+.keys.a{grid-template-columns:repeat(20,1fr);gap:var(--s1)}
+.keys.a button{grid-column:span 2;height:48px;padding:0}
+.keys.a .w3{grid-column:span 3}.keys.a .w4{grid-column:span 4}.keys.a .w8{grid-column:span 8}.keys.a .off1{grid-column:2/span 2}
+body.desk #kb .keys.hidek{display:none}
+.kbbar{display:flex;align-items:center;gap:var(--s3);font-size:var(--t1);color:var(--mut);padding:0 var(--s1) var(--s2)}
+.kbbar button{margin-left:auto;text-decoration:underline;min-height:44px}
+
+/* ---------- PIN pad, lock and welcome ---------- */
+.center{min-height:100%;display:flex;flex-direction:column;align-items:center;justify-content:center;text-align:center;gap:var(--s3);padding:var(--s3)}
+.logo{width:64px;height:64px}
+.hero{font-size:var(--t4);font-weight:800;line-height:1.1;margin:0;max-width:100%;overflow-wrap:anywhere}
+.hero span{display:inline-block;white-space:nowrap}
+.hero i{display:inline-block;font-style:normal;animation:rise .5s cubic-bezier(.2,.8,.2,1) both}
+.hero.still i{animation:none}
+@keyframes rise{from{opacity:0;transform:translateY(24px)}}
+.dots{display:flex;gap:var(--s3);margin:var(--s4) 0 var(--s1)}
+.dots i{width:16px;height:16px;border-radius:50%;border:2px solid var(--ink);transition:background .1s}
+.dots i.f{background:var(--ink)}
+.pinpad{display:grid;grid-template-columns:repeat(3,72px);gap:var(--s3);margin-top:var(--s2)}
+.pinpad button{height:64px;border-radius:50%;background:var(--card);border:1px solid var(--line);font-size:var(--t4);font-weight:600;line-height:1;display:grid;place-items:center;transition:background .08s,transform .08s}
+.pinpad button:active{background:var(--keyd);transform:scale(.95)}
+.pinpad .nb{background:none;border:0}
+.err{color:var(--red);min-height:24px;font-size:var(--t1)}
+.steps{display:flex;gap:var(--s2);margin:var(--s2) 0}
+.steps i{width:32px;height:4px;border-radius:2px;background:var(--line)}
+.steps i.f{background:var(--acc)}
+.onb{max-width:380px;width:100%;text-align:left}
+.onb .hero{margin:var(--s2) 0}
+
+/* ---------- Pointer hover (laptop). Phones never see these. ---------- */
+@media (hover:hover){
+  .btn:hover{box-shadow:0 0 0 2px var(--line)}
+  .btn.pri:hover,.btn.green:hover,.btn.red:hover{opacity:.9;box-shadow:none}
+  .btn.ghost:hover{color:var(--ink);box-shadow:none}
+  .chip:hover,.iconbtn:hover,.datechip:hover,.pcard:hover,.menu button:hover,.menu a:hover,#sugg button:hover,.pinpad button:hover,.xbtn:hover{background:var(--keyd)}
+  .chip.on:hover{background:var(--pri);opacity:.9}
+  .keys button:hover{background:var(--line)}
+  .keys .go:hover,.keys .paid:hover,.keys .bill:hover{opacity:.9}
+  .lrow:hover{background:color-mix(in srgb,var(--acc) 10%,transparent)}
+  .fld:hover{border-color:var(--acc)}
+  nav button:hover{color:var(--ink)}
+}
+/* short phones: slimmer keys and sheets so Save stays visible above the keypad */
+@media (max-height:700px){
+  .keys button{height:44px} .keys.a button{height:44px} #kb{padding:var(--s1) var(--s2)} #sugg{padding-bottom:var(--s1)}
+  #sheet .box{padding:var(--s3) var(--s4) var(--s4)} #sheet .acts{margin-top:var(--s3)} .btn{min-height:48px}
+}
+@media (prefers-reduced-motion:reduce){ *{animation-duration:.01s!important;transition-duration:.01s!important} }
+</style>
+</head>
+<body>
+<div id="app">
+  <header id="hdr" class="hide">
+    <div class="biz" id="bizname"></div>
+    <div class="sync" id="sync"><i></i><span></span></div>
+    <button class="iconbtn" data-act="lockNow" aria-label="Lock">
+      <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><rect x="5" y="11" width="14" height="9" rx="2"/><path d="M8 11V8a4 4 0 0 1 8 0v3"/></svg>
+    </button>
+  </header>
+  <div id="stage">
+    <main id="main"></main>
+    <div id="sheet" class="hide"></div>
+  </div>
+  <div id="toast" class="hide"></div>
+  <div id="kb" class="hide"></div>
+  <nav id="nav" class="hide"></nav>
+</div>
+<input type="file" id="file" accept=".json,application/json" class="hide">
+
+<script>
+"use strict";
+/* =====================================================================
+   BAHI - bills + party ledger in one app.
+   One file, no build step. Sections:
+     1. Words (English / Hindi)        6. Entry fields and keypads
+     2. Small helpers                  7. Screens
+     3. Encryption                     8. Sheets (dialogs)
+     4. Storage (device + sync)        9. Sharing, backup, export
+     5. Book data and party maths     10. Actions, events, start-up
+   ===================================================================== */
+
+/* ---------------------------------------------------------------
+   1. WORDS. Every text the user sees is here, in both languages.
+   --------------------------------------------------------------- */
+const W = {
+en:{
+  bill:"Bill", ledger:"Ledger", parties:"Parties", more:"More",
+  partyL:"Party", newBill:"New bill", billNo:"Bill no. {0}", party:"Party name", date:"Date", item:"Item", rate:"Rate", qty:"Qty", amount:"Amount",
+  addItem:"+ Add item", subTotal:"Sub total", transport:"Transport", grand:"Grand total", saveBill:"Save bill", saveChanges:"Save changes",
+  share:"Share", del:"Delete", savedBills:"Saved bills", next:"Next", done:"Done", clear:"Clear", note:"Note",
+  paid:"Paid", billed:"Bill", toReceive:"To receive", advance:"Advance", settled:"Settled",
+  chooseParty:"Choose party", addParty:"Add party", searchParty:"Search party", addNew:"Add \"{0}\" as new party",
+  noParties:"No parties yet", noPartiesSub:"Add your first party to start the ledger.",
+  noEntries:"No entries yet", noEntriesSub:"Type an amount, then press Paid or Bill.",
+  noBills:"No bills yet", noBillsSub:"Bills you save will show here.",
+  enterParty:"Type the party name first.", enterItem:"Add at least one item with rate and quantity.", enterAmt:"Type an amount first.",
+  billSaved:"Bill saved. {0} added to {1}.", billUpdated:"Bill updated.", billDeleted:"Bill deleted.", undo:"Undo", undone:"Undone.",
+  paidSaved:"Paid {0} saved.", billedSaved:"Bill {0} saved.", entryDeleted:"Entry deleted.",
+  turnover:"Turnover", lastPaid:"Last paid", lastBill:"Last bill", never:"never", overdue:"Overdue {0}d", balance:"Balance",
+  openLedger:"Open ledger", remind:"Send payment reminder", statement:"Share statement", edit:"Edit", phone:"WhatsApp number (optional)",
+  creditDays:"Credit days", save:"Save", cancel:"Cancel", name:"Name", partyHasEntries:"This party has entries. Delete the entries first.",
+  partyExists:"A party with this name already exists.", partySaved:"Party saved.", partyDeleted:"Party deleted.",
+  catalogue:"Items and rates", addItemC:"Add item", searchItem:"Search item", unit:"Unit (kg, pc, m ...)", rateChart:"Rate chart", shareRates:"Share rate chart",
+  noItems:"No items yet", noItemsSub:"Add your items and rates here. Items you bill are added by themselves.", itemExists:"An item with this name already exists.", itemSaved:"Item saved.", itemDeleted:"Item deleted.",
+  report:"Item sales report", repMonth:"This month", repLast:"Last month", repYear:"This year", repAll:"All time", repNone:"No sales in this period", repNoneSub:"Bills you save will be counted here.",
+  repTotal:"Items total", repNote:"Transport is not counted.", bills:"{0} bills", csvReport:"Export (CSV)",
+  cash:"Cash counter", cashTotal:"Total cash", cashClear:"Clear all", allBills:"All bills", searchBills:"Search bills",
+  dataSect:"Backup and export", backup:"Save backup file", restore:"Restore from backup", csvLedger:"Export ledger (CSV)", csvBills:"Export bills (CSV)",
+  settings:"Settings", bizName:"Business name", language:"Language", theme:"Theme", light:"Light", dark:"Dark", auto:"Auto",
+  defCredit:"Default credit days", autoLock:"Auto-lock", minutes:"{0} min", changePin:"Change PIN", lockNow:"Lock now",
+  safety:"What is protected", erase:"Erase all data", eraseAsk:"Erase everything?", eraseSub:"All bills, parties and entries on this device and in sync will be deleted. This cannot be undone.",
+  eraseYes:"Yes, erase everything",
+  welcome:"Welcome to Bahi", welcomeSub:"Bills and party ledger in one place. Locked with your PIN.", start:"Start", haveBackup:"I have a backup file",
+  yourBiz:"What is your business called?", bizPh:"Business name",
+  setPin:"Set a 6-digit PIN", setPinSub:"You will type this PIN each time you open the app.", pinAgain:"Type the PIN once more",
+  pinWarn:"Write this PIN down and keep it safe. If you forget it, nobody can open your data, not even us.",
+  pinNoMatch:"The two PINs did not match. Try again.", firstParty:"Add your first party", firstPartySub:"A customer or supplier you deal with. You can add more later.",
+  skip:"Skip", cont:"Continue",
+  enterPin:"Enter PIN", wrongPin:"Wrong PIN. Try again.", wait:"Too many wrong tries. Wait {0} seconds.", forgot:"Forgot PIN?",
+  forgotT:"Forgot your PIN?", forgotSub:"Your data is locked with the PIN, so it cannot be opened without it. You can keep trying, or erase this device and start fresh.",
+  oldPin:"Enter current PIN", newPin:"Enter new PIN", pinChanged:"PIN changed.", backupPin:"Enter the PIN of that backup",
+  tip1:"1. Type the party name", tip2:"2. Add items with quantity and rate", tip3:"3. Press Save bill. It goes into the ledger by itself.",
+  saved:"Saved", synced:"Synced", paused:"Sync paused", opening:"Opening...",
+  whatsapp:"WhatsApp", copy:"Copy text", image:"Save as image", pdf:"Save as PDF", copied:"Copied.", copyFail:"Could not copy. Press and hold the text to copy it.",
+  fileSaved:"File saved.", fileNo:"The file was not saved.", fileNA:"Saving files is not available in this view. Use Copy instead.",
+  pdfFail:"PDF needs internet the first time. Check your connection and try again.",
+  backupOk:"Backup saved. Keep the file somewhere safe.", restoreAsk:"Replace current data?", restoreSub:"Everything now in the app will be replaced with the backup from {0}.",
+  restoreYes:"Yes, restore", restored:"Backup restored.", badFile:"This is not a Bahi backup file.", badPin:"That PIN does not open this backup.",
+  storeFail:"Could not save on this device. Storage may be full. Save a backup file now.",
+  syncOther:"Sync is paused: this device and your other device have different PINs. Lock and open again with the newest PIN.",
+  delEntry:"Delete this entry?", delBill:"Delete this bill?", delBillSub:"It will also be removed from the party ledger.", openBill:"Open bill", yesDelete:"Yes, delete",
+  today:"Today", yesterday:"Yesterday", opening_bal:"Opening balance", total:"Total", showKeys:"Show keypad", hideKeys:"Hide keypad", typing:"Type on your keyboard. Enter = next.",
+  remindText:"Namaste {0} ji,\nA payment of {1} is pending with {2}.{3}\nPlease pay at the earliest. Thank you.", remindLast:" Last bill: {0}.",
+  nothingDue:"{0} has nothing pending.", items:"{0} items", item1:"1 item", version:"Version", prevData:"Data from before the last update", installApp:"Install on this device", appUpdated:"Bahi updated to version {0}. Your data is safe.", noDue:"No party is overdue. Well done.", noMatch:"Nothing found.",
+  editEntry:"Edit entry", entryUpdated:"Entry updated.", lastBackup:"Last backup", backupNudge:"Last backup: {0}. Save one now so your data stays safe.",
+  fy:"FY {0}", all:"All", overdueF:"Overdue", quick:["Cash","UPI","Cheque","Bank"],
+  safe1:"Your data is scrambled with AES-256 using a key made from your PIN. Without the PIN it is unreadable.",
+  safe2:"The same scrambled copy is kept in sync storage for your account. The server never sees your PIN or readable data.",
+  safe3:"The app locks itself when idle. Wrong PIN tries are slowed down.",
+  safe4:"Not protected: someone who knows your PIN, a phone with a virus or screen recorder, and messages after you share them on WhatsApp.",
+  safe5:"A 6-digit PIN stops normal people. A skilled attacker who copies your backup file could guess it in days, so keep backup files private.",
+  safe6:"Use one device at a time. If two devices change data at the same moment, the latest save wins.",
+},
+hi:{
+  bill:"बिल", ledger:"खाता", parties:"पार्टी", more:"और",
+  partyL:"पार्टी", newBill:"नया बिल", billNo:"बिल नं. {0}", party:"पार्टी का नाम", date:"तारीख", item:"सामान", rate:"रेट", qty:"मात्रा", amount:"रकम",
+  addItem:"+ सामान जोड़ें", subTotal:"कुल", transport:"भाड़ा", grand:"कुल जोड़", saveBill:"बिल सेव करें", saveChanges:"बदलाव सेव करें",
+  share:"भेजें", del:"हटाएं", savedBills:"पुराने बिल", next:"आगे", done:"ठीक", clear:"साफ", note:"नोट",
+  paid:"जमा", billed:"बिल", toReceive:"लेना है", advance:"एडवांस", settled:"बराबर",
+  chooseParty:"पार्टी चुनें", addParty:"पार्टी जोड़ें", searchParty:"पार्टी खोजें", addNew:"\"{0}\" नई पार्टी जोड़ें",
+  noParties:"अभी कोई पार्टी नहीं", noPartiesSub:"खाता शुरू करने के लिए पहली पार्टी जोड़ें।",
+  noEntries:"अभी कोई एंट्री नहीं", noEntriesSub:"रकम लिखें, फिर जमा या बिल दबाएं।",
+  noBills:"अभी कोई बिल नहीं", noBillsSub:"सेव किए बिल यहां दिखेंगे।",
+  enterParty:"पहले पार्टी का नाम लिखें।", enterItem:"कम से कम एक सामान रेट और मात्रा के साथ लिखें।", enterAmt:"पहले रकम लिखें।",
+  billSaved:"बिल सेव हुआ। {0} {1} के खाते में जुड़ा।", billUpdated:"बिल बदला गया।", billDeleted:"बिल हटाया गया।", undo:"वापस", undone:"वापस किया।",
+  paidSaved:"जमा {0} सेव हुआ।", billedSaved:"बिल {0} सेव हुआ।", entryDeleted:"एंट्री हटाई गई।",
+  turnover:"कुल बिक्री", lastPaid:"पिछला जमा", lastBill:"पिछला बिल", never:"कभी नहीं", overdue:"{0} दिन देरी", balance:"बाकी",
+  openLedger:"खाता खोलें", remind:"पेमेंट याद दिलाएं", statement:"खाता भेजें", edit:"बदलें", phone:"व्हाट्सऐप नंबर (जरूरी नहीं)",
+  creditDays:"उधार के दिन", save:"सेव", cancel:"रद्द", name:"नाम", partyHasEntries:"इस पार्टी में एंट्री हैं। पहले एंट्री हटाएं।",
+  partyExists:"इस नाम की पार्टी पहले से है।", partySaved:"पार्टी सेव हुई।", partyDeleted:"पार्टी हटाई गई।",
+  catalogue:"सामान और रेट", addItemC:"सामान जोड़ें", searchItem:"सामान खोजें", unit:"इकाई (किलो, नग, मीटर ...)", rateChart:"रेट चार्ट", shareRates:"रेट चार्ट भेजें",
+  noItems:"अभी कोई सामान नहीं", noItemsSub:"अपना सामान और रेट यहां जोड़ें। बिल में लिखा सामान अपने आप जुड़ जाता है।", itemExists:"इस नाम का सामान पहले से है।", itemSaved:"सामान सेव हुआ।", itemDeleted:"सामान हटाया गया।",
+  report:"सामान बिक्री रिपोर्ट", repMonth:"इस महीने", repLast:"पिछले महीने", repYear:"इस साल", repAll:"पूरा समय", repNone:"इस समय में कोई बिक्री नहीं", repNoneSub:"सेव किए बिल यहां गिने जाएंगे।",
+  repTotal:"सामान का कुल", repNote:"भाड़ा नहीं गिना गया।", bills:"{0} बिल", csvReport:"निकालें (CSV)",
+  cash:"नकद गिनती", cashTotal:"कुल नकद", cashClear:"सब साफ", allBills:"सभी बिल", searchBills:"बिल खोजें",
+  dataSect:"बैकअप और निकालें", backup:"बैकअप फाइल सेव करें", restore:"बैकअप से वापस लाएं", csvLedger:"खाता निकालें (CSV)", csvBills:"बिल निकालें (CSV)",
+  settings:"सेटिंग", bizName:"दुकान का नाम", language:"भाषा", theme:"रंग", light:"हल्का", dark:"गहरा", auto:"अपने आप",
+  defCredit:"उधार के दिन (सबके लिए)", autoLock:"अपने आप लॉक", minutes:"{0} मिनट", changePin:"पिन बदलें", lockNow:"अभी लॉक करें",
+  safety:"क्या सुरक्षित है", erase:"सारा डेटा मिटाएं", eraseAsk:"सब कुछ मिटाएं?", eraseSub:"इस फोन और सिंक के सभी बिल, पार्टी और एंट्री मिट जाएंगे। यह वापस नहीं होगा।",
+  eraseYes:"हां, सब मिटाएं",
+  welcome:"बही में स्वागत है", welcomeSub:"बिल और पार्टी खाता एक जगह। आपके पिन से बंद।", start:"शुरू करें", haveBackup:"मेरे पास बैकअप फाइल है",
+  yourBiz:"आपकी दुकान का नाम क्या है?", bizPh:"दुकान का नाम",
+  setPin:"6 अंक का पिन बनाएं", setPinSub:"ऐप खोलते समय हर बार यह पिन डालना होगा।", pinAgain:"पिन एक बार फिर डालें",
+  pinWarn:"यह पिन लिखकर संभाल कर रखें। भूल गए तो आपका डेटा कोई नहीं खोल सकता, हम भी नहीं।",
+  pinNoMatch:"दोनों पिन अलग थे। फिर से डालें।", firstParty:"पहली पार्टी जोड़ें", firstPartySub:"कोई ग्राहक या सप्लायर। बाद में और जोड़ सकते हैं।",
+  skip:"छोड़ें", cont:"आगे बढ़ें",
+  enterPin:"पिन डालें", wrongPin:"गलत पिन। फिर कोशिश करें।", wait:"कई बार गलत पिन। {0} सेकंड रुकें।", forgot:"पिन भूल गए?",
+  forgotT:"पिन भूल गए?", forgotSub:"आपका डेटा पिन से बंद है, इसलिए पिन के बिना नहीं खुलेगा। आप फिर कोशिश कर सकते हैं, या इस फोन का डेटा मिटाकर नई शुरुआत कर सकते हैं।",
+  oldPin:"अभी का पिन डालें", newPin:"नया पिन डालें", pinChanged:"पिन बदल गया।", backupPin:"उस बैकअप का पिन डालें",
+  tip1:"1. पार्टी का नाम लिखें", tip2:"2. सामान, मात्रा और रेट लिखें", tip3:"3. बिल सेव करें दबाएं। खाते में अपने आप जुड़ जाएगा।",
+  saved:"सेव", synced:"सिंक", paused:"सिंक रुका है", opening:"खुल रहा है...",
+  whatsapp:"व्हाट्सऐप", copy:"टेक्स्ट कॉपी", image:"फोटो सेव करें", pdf:"PDF सेव करें", copied:"कॉपी हुआ।", copyFail:"कॉपी नहीं हुआ। टेक्स्ट को दबाकर कॉपी करें।",
+  fileSaved:"फाइल सेव हुई।", fileNo:"फाइल सेव नहीं हुई।", fileNA:"यहां फाइल सेव नहीं हो सकती। कॉपी का उपयोग करें।",
+  pdfFail:"PDF के लिए पहली बार इंटरनेट चाहिए। इंटरनेट देखकर फिर कोशिश करें।",
+  backupOk:"बैकअप सेव हुआ। फाइल संभाल कर रखें।", restoreAsk:"अभी का डेटा बदलें?", restoreSub:"ऐप का सारा डेटा {0} के बैकअप से बदल जाएगा।",
+  restoreYes:"हां, वापस लाएं", restored:"बैकअप वापस आ गया।", badFile:"यह बही की बैकअप फाइल नहीं है।", badPin:"इस पिन से यह बैकअप नहीं खुलता।",
+  storeFail:"इस फोन में सेव नहीं हुआ। जगह भर गई हो सकती है। अभी बैकअप फाइल सेव करें।",
+  syncOther:"सिंक रुका है: इस फोन और दूसरे फोन का पिन अलग है। लॉक करके नए पिन से खोलें।",
+  delEntry:"यह एंट्री हटाएं?", delBill:"यह बिल हटाएं?", delBillSub:"यह पार्टी के खाते से भी हट जाएगा।", openBill:"बिल खोलें", yesDelete:"हां, हटाएं",
+  today:"आज", yesterday:"कल", opening_bal:"पिछला बाकी", total:"कुल", showKeys:"कीपैड दिखाएं", hideKeys:"कीपैड छुपाएं", typing:"कीबोर्ड से लिखें। Enter = आगे।",
+  remindText:"नमस्ते {0} जी,\n{2} में आपका {1} बाकी है।{3}\nकृपया जल्दी पेमेंट करें। धन्यवाद।", remindLast:" पिछला बिल: {0}।",
+  nothingDue:"{0} का कुछ बाकी नहीं है।", items:"{0} सामान", item1:"1 सामान", version:"वर्ज़न", prevData:"पिछले अपडेट से पहले का डेटा", installApp:"इस फोन/कंप्यूटर पर इंस्टॉल करें", appUpdated:"बही वर्ज़न {0} में अपडेट हुआ। आपका डेटा सुरक्षित है।", noDue:"किसी पार्टी का पेमेंट देरी में नहीं है।", noMatch:"कुछ नहीं मिला।",
+  editEntry:"एंट्री बदलें", entryUpdated:"एंट्री बदली गई।", lastBackup:"पिछला बैकअप", backupNudge:"पिछला बैकअप: {0}। डेटा सुरक्षित रखने के लिए अभी बैकअप लें।",
+  fy:"वित्त वर्ष {0}", all:"सभी", overdueF:"देरी वाले", quick:["नकद","UPI","चेक","बैंक"],
+  safe1:"आपका डेटा पिन से बनी चाबी से AES-256 में बंद है। पिन के बिना पढ़ा नहीं जा सकता।",
+  safe2:"वही बंद कॉपी आपके खाते के सिंक में रहती है। सर्वर को आपका पिन या खुला डेटा कभी नहीं दिखता।",
+  safe3:"खाली रहने पर ऐप अपने आप लॉक होता है। गलत पिन पर रुकना पड़ता है।",
+  safe4:"सुरक्षित नहीं: जिसे आपका पिन पता है, वायरस या स्क्रीन रिकॉर्डर वाला फोन, और व्हाट्सऐप पर भेजे गए मैसेज।",
+  safe5:"6 अंक का पिन आम लोगों को रोकता है। जानकार हमलावर बैकअप फाइल मिलने पर कुछ दिनों में पिन खोज सकता है, इसलिए बैकअप फाइल किसी को न दें।",
+  safe6:"एक समय में एक ही फोन पर काम करें। दो फोन एक साथ बदलें तो आखिरी सेव रहेगा।",
+}};
+let LANG = "en";
+/** Look up a word in the current language and fill {0} {1} ... slots. */
+function t(k, ...a){ let s = (W[LANG] && W[LANG][k]) || W.en[k] || k; if(Array.isArray(s)) return s; a.forEach((v,i)=>{ s = s.split("{"+i+"}").join(v); }); return s; }
+
+/* ---------------------------------------------------------------
+   2. SMALL HELPERS
+   --------------------------------------------------------------- */
+const $ = (s, r=document) => r.querySelector(s);
+const $$ = (s, r=document) => [...r.querySelectorAll(s)];
+const esc = s => String(s==null?"":s).replace(/[&<>"']/g, c => ({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#39;"}[c]));
+const num = s => { const n = parseFloat(String(s==null?"":s).replace(/,/g,"")); return isFinite(n) ? n : 0; };
+const r2 = n => Math.round((n + Number.EPSILON) * 100) / 100;
+const money = n => (n<0?"-":"") + "₹" + Math.abs(r2(n)).toLocaleString("en-IN",{maximumFractionDigits:2});
+const plain = n => r2(n).toLocaleString("en-IN",{maximumFractionDigits:2});
+const pad2 = n => String(n).padStart(2,"0");
+const iso = d => d.getFullYear()+"-"+pad2(d.getMonth()+1)+"-"+pad2(d.getDate());
+const today = () => iso(new Date());
+const dayDiff = (a,b) => Math.round((new Date(b+"T00:00") - new Date(a+"T00:00"))/864e5);
+/** "2026-11-12" -> "12 Nov" (adds the year when it is not this year). */
+function fdate(s, long){
+  if(!s) return "";
+  const d = new Date(s+"T00:00"), o = {day:"numeric",month:"short"};
+  if(long || d.getFullYear() !== new Date().getFullYear()) o.year = "numeric";
+  return d.toLocaleDateString(LANG==="hi"?"hi-IN":"en-IN", o);
+}
+/** Show a typed number with Indian commas while keeping what was typed ("1234." stays "1,234."). */
+function typed(s){
+  if(!s) return "";
+  const [a,b] = String(s).split(".");
+  const i = a ? Number(a).toLocaleString("en-IN") : "0";
+  return b===undefined ? i : i+"."+b;
+}
+const getPath = (o,p) => p.split(".").reduce((x,k)=> x==null?x:x[k], o);
+function setPath(o,p,v){ const ks = p.split("."), last = ks.pop(); const tgt = ks.reduce((x,k)=>x[k], o); tgt[last] = v; }
+
+/* ---------------------------------------------------------------
+   3. ENCRYPTION. AES-256-GCM, key from the PIN with PBKDF2-SHA256.
+   The PIN itself is never stored anywhere.
+   --------------------------------------------------------------- */
+const KDF_ITER = 600000, PIN_LEN = 6;
+const b64 = buf => { const u = new Uint8Array(buf); let s = ""; for(let i=0;i<u.length;i+=0x8000) s += String.fromCharCode.apply(null, u.subarray(i,i+0x8000)); return btoa(s); };
+const unb64 = s => Uint8Array.from(atob(s), c => c.charCodeAt(0));
+const randB64 = n => b64(crypto.getRandomValues(new Uint8Array(n)));
+async function deriveKey(pin, saltB64, iter){
+  const base = await crypto.subtle.importKey("raw", new TextEncoder().encode(pin), "PBKDF2", false, ["deriveKey"]);
+  return crypto.subtle.deriveKey({name:"PBKDF2", salt:unb64(saltB64), iterations:iter, hash:"SHA-256"}, base, {name:"AES-GCM", length:256}, false, ["encrypt","decrypt"]);
+}
+async function encryptObj(key, obj){
+  const iv = crypto.getRandomValues(new Uint8Array(12));
+  const ct = await crypto.subtle.encrypt({name:"AES-GCM", iv}, key, new TextEncoder().encode(JSON.stringify(obj)));
+  return {iv:b64(iv), ct:b64(ct)};
+}
+async function decryptObj(key, v){
+  const pt = await crypto.subtle.decrypt({name:"AES-GCM", iv:unb64(v.iv)}, key, unb64(v.ct));
+  return JSON.parse(new TextDecoder().decode(pt));
+}
+
+/* ---------------------------------------------------------------
+   4. STORAGE. The "vault" is the encrypted book:
+        {app, v, salt, iter, iv, ct, rev}
+   It is kept on this device (localStorage) and, when the page has
+   the db capability, in the signed-in person's private sync area.
+   Only the encrypted vault ever leaves memory.
+   --------------------------------------------------------------- */
+/* Storage keys and the encrypted format never change between versions, so an update can't lose data.
+   Before a new version first opens someone's book, a copy of the book as it was is kept (LS_PREV). */
+const APP_VER = "1.3";
+const LS_VAULT = "bahi.vault", LS_TRY = "bahi.try", LS_UI = "bahi.ui", LS_PREV = "bahi.vault.before-update";
+const ls = {
+  get(k){ try{ return JSON.parse(localStorage.getItem(k)); }catch(e){ return null; } },
+  set(k,v){ try{ localStorage.setItem(k, JSON.stringify(v)); return true; }catch(e){ return false; } },
+  del(k){ try{ localStorage.removeItem(k); }catch(e){} }
+};
+let V = null;      // vault header in use: {salt, iter}
+let KEY = null;    // CryptoKey while unlocked
+let S = null;      // the open book (plain data), only while unlocked
+let saveTimer = 0, saving = false, saveAgain = false;
+
+/** Call after every change to the book: stamps it and saves soon. */
+function commit(){ S.rev = Date.now(); clearTimeout(saveTimer); saveTimer = setTimeout(saveNow, 200); }
+async function saveNow(){
+  clearTimeout(saveTimer);
+  if(!S || !KEY) return;
+  if(saving){ saveAgain = true; return; }
+  saving = true;
+  try{
+    const enc = await encryptObj(KEY, S);
+    const vault = {app:"bahi", v:1, salt:V.salt, iter:V.iter, iv:enc.iv, ct:enc.ct, rev:S.rev};
+    if(!ls.set(LS_VAULT, vault) && !Cloud.db) toast(t("storeFail"));
+    Cloud.pending = vault; cloudPushSoon();
+  }catch(e){ toast(t("storeFail")); }
+  saving = false;
+  if(saveAgain){ saveAgain = false; saveNow(); }
+}
+
+/* ---- Sync (optional). Encrypted vault is split in chunks under
+        data/users/<id>/ which is private to the signed-in person. ---- */
+const Cloud = {db:null, col:null, vault:null, checked:false, pending:null, pushing:false, timer:0, slot:"a", status:"saved"};
+const CHUNK = 150000;
+async function cloudInit(){
+  try{
+    if(!window.claude || !window.claude.use) return;
+    const giveUp = new Promise(r => setTimeout(()=>r("late"), 10000));
+    const work = (async()=>{
+      const [db, user] = await Promise.all([window.claude.use("db"), window.claude.use("user")]);
+      if(!db || !user) return;
+      const uid = await user.id(); if(!uid) return;
+      const col = db.collection("data/users/"+uid);
+      const meta = await col.doc("meta").get();
+      if(meta.exists){
+        const m = meta.data(); let ct = "";
+        for(let i=0;i<m.n;i++){ const c = await col.doc(m.slot+i).get(); if(!c.exists){ ct = null; break; } ct += c.data().d; }
+        if(ct !== null){ Cloud.vault = {app:"bahi", v:1, salt:m.salt, iter:m.iter, iv:m.iv, ct, rev:m.rev}; Cloud.slot = m.slot; }
+      }
+      Cloud.db = db; Cloud.col = col;
+    })();
+    await Promise.race([work, giveUp]);
+  }catch(e){ /* sync is optional: stay on device storage */ }
+  finally{ Cloud.checked = true; onCloudChecked(); }
+}
+function cloudPushSoon(){ if(!Cloud.db || Cloud.status==="paused") return; clearTimeout(Cloud.timer); Cloud.timer = setTimeout(cloudPush, 2500); }
+async function cloudPush(){
+  if(!Cloud.db || !Cloud.pending || Cloud.status==="paused") return;
+  if(Cloud.pushing) return cloudPushSoon();
+  Cloud.pushing = true;
+  const v = Cloud.pending; Cloud.pending = null;
+  try{
+    // Write into the slot not in use, then switch "meta" to it, so a half-finished upload never breaks the stored copy.
+    const slot = Cloud.slot==="a" ? "b" : "a", n = Math.ceil(v.ct.length/CHUNK);
+    for(let i=0;i<n;i++) await Cloud.col.doc(slot+i).set({d:v.ct.slice(i*CHUNK,(i+1)*CHUNK)});
+    await Cloud.col.doc("meta").set({salt:v.salt, iter:v.iter, iv:v.iv, rev:v.rev, n, slot});
+    Cloud.slot = slot; Cloud.vault = v; setSync("synced");
+  }catch(e){ if(!Cloud.pending) Cloud.pending = v; setSync("saved"); }
+  Cloud.pushing = false;
+  if(Cloud.pending) cloudPushSoon();
+}
+function setSync(st){ Cloud.status = st; const el = $("#sync"); if(!el) return; el.className = "sync"+(st==="paused"?" warn":""); $("span",el).textContent = t(st); }
+
+/** After unlocking (and when sync answers): take the newer of device and sync copies. */
+let heldPin = null;   // kept in memory only until sync has answered once after an unlock
+async function reconcile(){
+  if(!S || !KEY || !Cloud.checked) return;
+  const pin = heldPin; heldPin = null;
+  if(!Cloud.db){ setSync("saved"); return; }
+  const cv = Cloud.vault;
+  if(!cv || cv.rev < (S.rev||0)){ setSync("saved"); commitQuiet(); return; }
+  if(cv.rev === S.rev){ setSync("synced"); return; }
+  try{
+    let key = cv.salt===V.salt ? KEY : (pin ? await deriveKey(pin, cv.salt, cv.iter) : null);
+    if(!key) throw 0;
+    const st = await decryptObj(key, cv);
+    S = migrate(st); V = {salt:cv.salt, iter:cv.iter}; KEY = key;
+    ls.set(LS_VAULT, cv); applyPrefs(); setSync("synced"); render();
+  }catch(e){ setSync("paused"); toast(t("syncOther")); }
+}
+function commitQuiet(){ saveNow(); }
+function onCloudChecked(){
+  if(UI.mode==="loading") boot2();
+  else if(UI.mode==="app") reconcile();
+}
+
+/* ---------------------------------------------------------------
+   5. BOOK DATA AND PARTY MATHS
+   Book: {biz, set, parties[], entries[], bills[], cash{}, seq, billSeq, tipDone, rev}
+   entry: {id, pid, type:"paid"|"bill", amt, date, note, billId?}
+   bill:  {id, no, pid, date, rows:[{item,rate,qty}], transport, total}
+   --------------------------------------------------------------- */
+function newBook(name){ return {biz:{name:name||""}, set:{lang:LANG, theme:"auto", credit:30, lock:2}, parties:[], entries:[], bills:[], items:[], cash:{}, seq:1, billSeq:1, tipDone:false, rev:Date.now()}; }
+function migrate(b){
+  if(b.items===undefined){            // older book: start the catalogue from items already billed (latest rate)
+    const seen = new Map();
+    for(let i=(b.bills||[]).length-1;i>=0;i--) for(const r of b.bills[i].rows){ const k = r.item.toLowerCase(); if(r.item && !seen.has(k)) seen.set(k, {id:b.seq++, name:r.item, rate:r.rate, unit:""}); }
+    b.items = [...seen.values()];
+  }
+  const d = newBook(""); for(const k in d) if(b[k]===undefined) b[k] = d[k]; for(const k in d.set) if(b.set[k]===undefined) b.set[k] = d.set[k]; return b; }
+const nid = () => S.seq++;
+const partyById = id => S.parties.find(p => p.id===id);
+const findParty = name => { const n = String(name).trim().toLowerCase(); return S.parties.find(p => p.name.toLowerCase()===n); };
+function ensureParty(name){ let p = findParty(name); if(!p){ p = {id:nid(), name:String(name).trim(), phone:"", credit:null}; S.parties.push(p); } return p; }
+const sortedEntries = pid => S.entries.filter(e => e.pid===pid).sort((a,b)=> a.date<b.date?-1 : a.date>b.date?1 : a.id-b.id);
+
+/** One pass over all entries: balance, turnover, last dates and overdue days for every party. */
+function allStats(){
+  const m = new Map(); const now = today();
+  S.parties.forEach(p => m.set(p.id, {bal:0, turn:0, paid:0, lastPaid:null, lastBill:null, bills:[], overdue:0}));
+  for(const e of S.entries){
+    const s = m.get(e.pid); if(!s) continue;
+    if(e.type==="bill"){ s.bal += e.amt; s.turn += e.amt; s.bills.push(e); if(!s.lastBill || e.date>s.lastBill) s.lastBill = e.date; }
+    else { s.bal -= e.amt; s.paid += e.amt; if(!s.lastPaid || e.date>s.lastPaid) s.lastPaid = e.date; }
+  }
+  // Overdue: payments clear the oldest bills first; the oldest bill still open decides the delay.
+  for(const p of S.parties){
+    const s = m.get(p.id); s.bal = r2(s.bal); s.turn = r2(s.turn);
+    if(s.bal <= 0) continue;
+    let pool = s.paid;
+    for(const b of s.bills.sort((a,b)=> a.date<b.date?-1:a.date>b.date?1:a.id-b.id)){
+      if(pool >= b.amt - 0.005){ pool -= b.amt; continue; }
+      const late = dayDiff(b.date, now) - (p.credit==null ? S.set.credit : p.credit);
+      if(late > 0) s.overdue = late; break;
+    }
+  }
+  return m;
+}
+const findItem = name => { const n = String(name).trim().toLowerCase(); return S.items.find(x => x.name.toLowerCase()===n); };
+/** Sales by item for a period: quantity, amount and number of bills, biggest first. Transport is left out. */
+function repRange(k){
+  const d = new Date(), y = d.getFullYear(), m = d.getMonth();
+  if(k==="month") return [iso(new Date(y,m,1)), iso(new Date(y,m+1,0))];
+  if(k==="last") return [iso(new Date(y,m-1,1)), iso(new Date(y,m,0))];
+  if(k==="year"){ const fy = m>=3 ? y : y-1; return [fy+"-04-01", (fy+1)+"-03-31"]; }
+  return ["0000-00-00","9999-99-99"];
+}
+function itemReport(k){
+  const [a,b] = repRange(k), m = new Map();
+  for(const bill of S.bills){ if(bill.date<a || bill.date>b) continue;
+    for(const r of bill.rows){ const key = (r.item||"-").toLowerCase(); let o = m.get(key); if(!o){ o = {item:r.item||"-", qty:0, amt:0, ids:new Set()}; m.set(key,o); }
+      o.qty += r.qty; o.amt += r2(r.rate*r.qty); o.ids.add(bill.id); } }
+  return [...m.values()].map(o => ({item:o.item, qty:Math.round(o.qty*1000)/1000, amt:r2(o.amt), n:o.ids.size})).sort((x,y)=> y.amt-x.amt || x.item.localeCompare(y.item));
+}
+/** Item names with rates for suggestions: the catalogue first, then anything else billed before. */
+function knownItems(){
+  const seen = new Map();
+  for(const x of S.items) seen.set(x.name.toLowerCase(), {item:x.name, rate:x.rate});
+  for(let i=S.bills.length-1;i>=0;i--) for(const r of S.bills[i].rows){ const k = r.item.toLowerCase(); if(r.item && !seen.has(k)) seen.set(k, {item:r.item, rate:r.rate}); }
+  return [...seen.values()];
+}
+
+/* ---------------------------------------------------------------
+   6. ENTRY FIELDS AND KEYPADS
+   Fields are plain boxes bound to a path inside D (the drafts).
+   The app's own keypad, or a real keyboard on a computer, edits
+   the draft; the phone keyboard is never opened.
+   --------------------------------------------------------------- */
+const blankBill = () => ({id:null, party:"", date:today(), rows:[{item:"",rate:"",qty:""}], transport:""});
+const D = { bill:blankBill(), led:{amt:"", note:"", date:today()}, q:{parties:"", bills:"", pick:"", items:""}, edit:{amt:"", note:"", date:"", type:"paid"}, item:{name:"", rate:"", unit:""},
+            party:{name:"", phone:"", credit:""}, cash:{}, onb:{biz:"", party:""}, set:{biz:"", credit:""} };
+const UI = { mode:"loading", tab:"bill", sub:null, pid:null, sheet:null, onb:0, rep:"month", pf:"all", alt:false, showKeys:false, lastNew:null };
+let F = null;   // the active field: {path, kind}
+const DESK = window.matchMedia && matchMedia("(hover:hover) and (pointer:fine)").matches;
+if(DESK) document.body.classList.add("desk");
+
+/** HTML for one field box. kind: text | num | int | tel */
+/** Work out a sum typed in a calc box, e.g. "2×290+100" = 680. Unfinished parts count as nothing. */
+function evalCalc(s){
+  return r2(String(s||"").split("+").reduce((sum, term) => {
+    const f = term.split("×").filter(x => x !== "" && x !== ".");
+    return sum + (f.length ? f.reduce((p,x) => p*num(x), 1) : 0);
+  }, 0));
+}
+/** "2×290" -> "2 × 290" (Indian commas on each number). */
+const calcPlain = v => String(v).split(/([×+])/).map(x => x==="×"||x==="+" ? ` ${x} ` : typed(x)).join("");
+/** What a calc box shows: "2 × 290 = 580" once there is a sum to show. */
+function calcShow(v){ v = String(v||""); if(!/[×+]/.test(v)) return typed(v); return calcPlain(v) + (/\d$/.test(v) ? ` = ${plain(evalCalc(v))}` : ""); }
+const showVal = (kind, v) => kind==="calc" ? calcShow(v) : (kind==="num"||kind==="int") ? typed(v) : v;
+function fld(path, kind, ph, cls){
+  const v = getPath(D, path) || "";
+  return `<div class="fld ${kind!=="text"&&kind!=="tel"?"num":""} ${cls||""}" data-path="${path}" data-kind="${kind}" data-ph="${esc(ph)}">${esc(showVal(kind, v))}</div>`;
+}
+const fldEl = path => $(`.fld[data-path="${path}"]`);
+function paintField(path){ const el = fldEl(path); if(!el) return; el.textContent = showVal(el.dataset.kind, getPath(D,path)||""); el.scrollLeft = el.scrollWidth; }
+function focusField(path){
+  const el = fldEl(path); if(!el) return;
+  $$(".fld.on").forEach(e => e.classList.remove("on"));
+  el.classList.add("on"); el.classList.remove("bad");
+  F = {path, kind:el.dataset.kind};
+  drawKeys(); el.scrollIntoView({block:"nearest"}); el.scrollLeft = el.scrollWidth;   // long names: show the end where the cursor is
+}
+function blurField(){ F = null; $$(".fld.on").forEach(e => e.classList.remove("on")); drawKeys(); }
+/** Order of fields on screen; Next / Enter / Tab walks this list. */
+function fieldOrder(){ const root = UI.sheet ? $("#sheet") : $("#main"); return $$(".fld", root).map(e => e.dataset.path); }
+function nextField(back){
+  if(!F) return;
+  const p = F.path, m = p.match(/^bill\.rows\.(\d+)\.(item|rate|qty)$/);
+  if(m && !back){
+    const i = +m[1], rows = D.bill.rows, row = rows[i], last = i===rows.length-1;
+    // rate is the last box in a row: open the next row
+    if(m[2]==="rate" && last && (row.item || num(row.qty))){ rows.push({item:"",rate:"",qty:""}); render(); return focusField(`bill.rows.${i+1}.item`); }
+    if(m[2]==="item" && last && i>0 && !row.item) return focusField("bill.transport");
+  }
+  if(p==="led.note" && !back) return focusField("led.amt");
+  const o = fieldOrder(), i = o.indexOf(p), n = o[i + (back?-1:1)];
+  if(n) focusField(n); else if(!back){ const b = $("[data-enter]", UI.sheet ? $("#sheet") : $("#main")); blurField(); if(b) b.click(); }
+}
+/** Apply one key to the active field. */
+function typeKey(k){
+  if(!F) return;
+  let v = String(getPath(D, F.path) || ""); const kind = F.kind;
+  if(k==="BS") v = v.slice(0,-1);
+  else if(k==="CLR") v = "";
+  else if(kind==="text"){ if(v.length < 40){ if(k===" " && (!v || v.endsWith(" "))) return; v += k; } }
+  else if(kind==="calc"){                       // numbers joined by × and +
+    if(k==="×" || k==="+"){
+      if(!v) return;
+      if(/[×+.]$/.test(v)) v = v.slice(0,-1);   // a second sign replaces the first
+      if(!v) return; v += k;
+    } else {
+      const term = v.split(/[×+]/).pop();
+      if(k==="."){ if(term.includes(".")) return; v += term ? "." : "0."; }
+      else if(/^\d+$/.test(k)){
+        if(k==="00" && !term) return;
+        const [a,b] = term.split(".");
+        if(b!==undefined){ if(b.length + k.length > 2) return; }
+        else if(a.length + k.length > 7) return;
+        if(term==="0") v = v.slice(0,-1);
+        v += k;
+      } else return;
+    }
+    if(v.length > 32) return;
+  }
+  else {
+    if(k==="."){ if(kind!=="num" || v.includes(".")) return; v = v ? v+"." : "0."; }
+    else if(/^\d+$/.test(k)){
+      if(k==="00" && !v) return;
+      const [a,b] = v.split(".");
+      if(b!==undefined){ if(b.length + k.length > 3) return; }
+      else if(a.length + k.length > (kind==="tel"?10:9)) return;
+      v = (v==="0" ? "" : v) + k;
+    } else return;
+  }
+  setPath(D, F.path, v); paintField(F.path); onInput(F.path);
+}
+/** Capital letter at the start of each word, small letters after. */
+const caseFor = ch => { if(!F) return ch; const v = String(getPath(D,F.path)||""); return (!v || v.endsWith(" ")) ? ch.toUpperCase() : ch.toLowerCase(); };
+
+/** Things that must refresh while typing, without redrawing the whole screen. */
+function onInput(path){
+  if(path.startsWith("bill.")) paintBillTotals();
+  else if(path==="q.parties") $("#plist").innerHTML = partyListHTML();
+  else if(path==="q.bills") $("#blist").innerHTML = billListHTML();
+  else if(path==="q.pick") $("#picklist").innerHTML = pickListHTML();
+  else if(path==="q.items") $("#ilist").innerHTML = itemListHTML();
+  else if(path.startsWith("cash.")) paintCash();
+  drawSugg();
+}
+
+/* ---- Suggestions above the keypad ---- */
+function suggestions(){
+  if(!F || !S) return [];
+  const v = String(getPath(D,F.path)||"").toLowerCase();
+  if(F.path==="bill.party"){
+    return S.parties.filter(p => p.name.toLowerCase().includes(v) && p.name.toLowerCase()!==v).slice(0,8).map(p => ({label:p.name, set:{[F.path]:p.name}, next:true}));
+  }
+  const m = F.path.match(/^bill\.rows\.(\d+)\.item$/);
+  if(m){
+    return knownItems().filter(x => x.item.toLowerCase().includes(v) && x.item.toLowerCase()!==v).slice(0,8)
+      .map(x => ({label:x.item+" · "+plain(x.rate), set:{[F.path]:x.item, [`bill.rows.${m[1]}.rate`]:String(x.rate)}, to:`bill.rows.${m[1]}.qty`}));
+  }
+  if(F.path==="led.note" || F.path==="led.amt") return t("quick").map(x => ({label:x, set:{"led.note":x}}));
+  if(F.path==="edit.note" || F.path==="edit.amt") return t("quick").map(x => ({label:x, set:{"edit.note":x}}));
+  return [];
+}
+let SUGG = [];
+function drawSugg(){ const el = $("#sugg"); if(!el) return; SUGG = suggestions(); el.innerHTML = SUGG.map((s,i)=>`<button data-sg="${i}">${esc(s.label)}</button>`).join(""); }
+function pickSugg(i){
+  const s = SUGG[i]; if(!s) return;
+  for(const p in s.set){ setPath(D, p, s.set[p]); paintField(p); }
+  if(F.path.startsWith("bill.")) paintBillTotals();
+  if(s.to) focusField(s.to); else if(s.next) nextField(); else drawSugg();
+}
+
+/* ---- Keypad drawing ---- */
+const BSICON = `<svg width="26" height="26" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 5H9l-6 7 6 7h12z"/><path d="M12 9l5 6M17 9l-5 6"/></svg>`;
+function drawKeys(){
+  const kb = $("#kb"), nav = $("#nav");
+  const inApp = UI.mode==="app";
+  if(!F){ kb.classList.add("hide"); nav.classList.toggle("hide", !inApp); return; }
+  kb.classList.remove("hide");
+  nav.classList.toggle("hide", !(inApp && !UI.sheet && F.path.startsWith("led.")));   // the ledger keeps its tabs: its amount box is always active
+  const hidek = (DESK && !UI.showKeys) ? "hidek" : "";
+  const bar = DESK ? `<div class="kbbar"><span>${t("typing")}</span><button data-act="toggleKeys">${t(UI.showKeys?"hideKeys":"showKeys")}</button></div>` : "";
+  let keys;
+  if(F.kind==="text"){
+    const rows = UI.alt ? ["1234567890","-/&()₹%+#@"," .,:'\"!?"] : ["QWERTYUIOP","ASDFGHJKL","ZXCVBNM"];
+    const b = (c,cls="") => `<button data-k="${esc(c)}" class="${cls}">${esc(c)}</button>`;
+    keys = `<div class="keys a ${hidek}">`
+      + [...rows[0]].map(c=>b(c)).join("")
+      + [...rows[1].trim()].map((c,i)=>b(c, i===0 && rows[1].trim().length===9 ? "off1" : "")).join("")
+      + (rows[1].trim().length===9 ? "" : "")
+      + `<button data-k="ALT" class="fn w3">${UI.alt?"ABC":"123"}</button>` + [...rows[2].trim()].map(c=>b(c)).join("")
+      + `<button data-k="BS" class="fn w3" style="grid-column:18/span 3">${BSICON}</button>`
+      + `<button data-k="CLR" class="fn w4">${t("clear")}</button><button data-k=" " class="w8">space</button><button data-k="." class="w3">.</button><button data-k="NEXT" class="go" style="grid-column:span 5">${t("next")}</button>`
+      + `</div>`;
+  } else {
+    const led = F.path==="led.amt";
+    const side = led
+      ? [`<button data-k="BS" class="fn">${BSICON}</button>`, `<button data-k="NOTE" class="fn">${t("note")}</button>`, `<button data-k="PAID" class="paid">${t("paid")}</button>`, `<button data-k="BILL" class="bill">${t("billed")}</button>`]
+      : [`<button data-k="BS" class="fn">${BSICON}</button>`, `<button data-k="CLR" class="fn">${t("clear")}</button>`, `<button data-k="NEXT" class="go" style="grid-row:span 2;height:auto">${t("next")}</button>`, ""];
+    const d = c => `<button data-k="${c}">${c}</button>`, calc = F.kind==="calc";
+    if(calc) side[1] = `<button data-k="+" class="fn">+</button>`;   // transport: + in place of Clear, × in place of 00
+    keys = `<div class="keys n ${hidek}">${d(7)}${d(8)}${d(9)}${side[0]}${d(4)}${d(5)}${d(6)}${side[1]}${d(1)}${d(2)}${d(3)}${side[2]}${calc?`<button data-k="×" class="fn">×</button>`:d("00")}${d(0)}${F.kind==="num"||calc?d("."):"<span></span>"}${side[3]}</div>`;
+    if(led && hidek) keys += `<div class="keys n" style="grid-template-columns:1fr 1fr"><button data-k="PAID" class="paid">${t("paid")} (P)</button><button data-k="BILL" class="bill">${t("billed")} (B)</button></div>`;
+  }
+  kb.innerHTML = `<div id="sugg"></div>${bar}${keys}`;
+  drawSugg();
+}
+/** A keypad key was pressed (touch or mouse). */
+function pressKey(k){
+  if(k==="NEXT") return nextField();
+  if(k==="ALT"){ UI.alt = !UI.alt; return drawKeys(); }
+  if(k==="NOTE") return focusField("led.note");
+  if(k==="PAID") return A.addEntry("paid");
+  if(k==="BILL") return A.addEntry("bill");
+  if(F && F.kind==="text" && k.length===1 && /[a-z]/i.test(k)) k = caseFor(k);
+  typeKey(k);
+}
+
+/* ---------------------------------------------------------------
+   7. SCREENS
+   --------------------------------------------------------------- */
+/** Big title whose letters rise one by one (words stay whole so lines break cleanly). */
+function heroHTML(text, still){
+  let n = 0;
+  const word = w => { let ls; try{ ls = [...new Intl.Segmenter(undefined,{granularity:"grapheme"}).segment(w)].map(x=>x.segment); }catch(e){ ls = [w]; }
+    return `<span>${ls.map(c=>`<i style="animation-delay:${(n++)*35}ms">${esc(c)}</i>`).join("")}</span>`; };
+  return `<h1 class="hero ${still?"still":""}">${String(text).split(/\s+/).filter(Boolean).map(word).join(" ")}</h1>`;
+}
+const LOGO = `<svg class="logo" viewBox="0 0 72 72"><rect x="8" y="6" width="56" height="60" rx="10" fill="#1E2740"/><rect x="8" y="6" width="12" height="60" rx="6" fill="#D9831F"/><path d="M28 24h26M28 36h26M28 48h16" stroke="#FFFDF6" stroke-width="4" stroke-linecap="round"/><circle cx="52" cy="48" r="4" fill="#4CC38A"/></svg>`;
+const ICON = {
+  bill:`<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M6 3h12v18l-3-2-3 2-3-2-3 2z"/><path d="M9 8h6M9 12h6"/></svg>`,
+  led:`<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M5 4h13a1 1 0 0 1 1 1v15H6a1 1 0 0 1-1-1z"/><path d="M9 4v16M12 9h4M12 13h4"/></svg>`,
+  parties:`<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="9" cy="8" r="3.5"/><path d="M2.5 20c.6-3.6 3.2-5.5 6.5-5.5s5.9 1.900 6.500 5.500"/><path d="M16 4.800a3.500 3.500 0 0 1 0 6.400M18 14.800c2 .700 3.200 2.500 3.500 5.200"/></svg>`,
+  more:`<svg viewBox="0 0 24 24" fill="currentColor"><circle cx="5" cy="12" r="2"/><circle cx="12" cy="12" r="2"/><circle cx="19" cy="12" r="2"/></svg>`
+};
+
+function render(){
+  const main = $("#main"), inApp = UI.mode==="app";
+  $("#hdr").classList.toggle("hide", !inApp);
+  main.className = "";
+  if(UI.mode==="loading") main.innerHTML = `<div class="center">${LOGO}<div class="mut">${t("opening")}</div></div>`;
+  else if(UI.mode==="onb") main.innerHTML = onbHTML();
+  else if(UI.mode==="lock") main.innerHTML = lockHTML();
+  else {
+    $("#bizname").textContent = S.biz.name || "Bahi";
+    setSync(Cloud.status);
+    $("#nav").innerHTML = ["bill","led","parties","more"].map(k => `<button data-act="tab" data-arg="${k}" class="${UI.tab===k?"on":""}">${ICON[k]}<span>${t(k==="led"?"ledger":k)}</span></button>`).join("");
+    if(UI.tab==="bill"){ main.className = "billp"; main.innerHTML = billHTML(); }
+    else if(UI.tab==="led"){ main.className = "led"; main.innerHTML = ledgerHTML(); const l = $(".llist"); if(l) l.scrollTop = l.scrollHeight; }
+    else if(UI.tab==="parties") main.innerHTML = partiesHTML();
+    else main.innerHTML = moreHTML();
+  }
+  renderSheet();
+  if(F && fldEl(F.path)) fldEl(F.path).classList.add("on"); else if(F) F = null;
+  drawKeys();
+  if(UI.mode==="app" && UI.tab==="bill") paintBillTotals();
+}
+
+/* ---- Welcome (first time only): business name, PIN, first party ---- */
+function onbHTML(){
+  const steps = `<div class="steps">${[0,1,2].map(i=>`<i class="${i<=UI.onb?"f":""}"></i>`).join("")}</div>`;
+  if(UI.onb===0) return `<div class="center"><div class="onb">${LOGO}${steps}${heroHTML(t("welcome"), !!F)}<p class="mut">${t("welcomeSub")}</p>
+    <div class="chips" style="margin:8px 0"><button class="chip ${LANG==="en"?"on":""}" data-act="lang" data-arg="en">English</button><button class="chip ${LANG==="hi"?"on":""}" data-act="lang" data-arg="hi">हिंदी</button></div>
+    <label class="lb">${t("yourBiz")}</label>${fld("onb.biz","text",t("bizPh"))}
+    <button class="btn pri wide" style="margin-top:16px" data-act="onbNext" data-enter>${t("start")}</button>
+    <button class="btn ghost wide" data-act="restorePick">${t("haveBackup")}</button></div></div>`;
+  if(UI.onb===1) return `<div class="center">${steps}${pinHTML()}<p class="sm mut" style="max-width:320px">${t("pinWarn")}</p></div>`;
+  return `<div class="center"><div class="onb">${steps}<h2>${t("firstParty")}</h2><p class="mut">${t("firstPartySub")}</p>
+    ${fld("onb.party","text",t("party"))}
+    <button class="btn pri wide" style="margin-top:16px" data-act="onbDone" data-enter>${t("cont")}</button>
+    <button class="btn ghost wide" data-act="onbDone" data-arg="skip">${t("skip")}</button></div></div>`;
+}
+
+/* ---- PIN pad (used by welcome, lock, change PIN and restore) ---- */
+const PIN = {buf:"", title:"", sub:"", err:"", done:null, busy:false};
+function askPin(title, sub){ return new Promise(res => { Object.assign(PIN, {buf:"", title, sub:sub||"", err:PIN.err, done:res, busy:false}); render(); }); }
+function pinHTML(){
+  return `<div class="pinbox" style="display:flex;flex-direction:column;align-items:center">
+    <h2 style="margin:0">${esc(PIN.title)}</h2><div class="mut sm">${esc(PIN.sub)}</div>
+    <div class="dots" id="dots">${Array.from({length:PIN_LEN},(_,i)=>`<i class="${i<PIN.buf.length?"f":""}"></i>`).join("")}</div>
+    <div class="err" id="pinerr">${esc(PIN.err)}</div>
+    <div class="pinpad">${[1,2,3,4,5,6,7,8,9].map(d=>`<button data-pin="${d}">${d}</button>`).join("")}<span></span><button data-pin="0">0</button><button data-pin="BS" class="nb">${BSICON}</button></div></div>`;
+}
+function pinKey(k){
+  PIN.shown = true;
+  if(PIN.busy || !PIN.done) return;
+  if(k==="BS") PIN.buf = PIN.buf.slice(0,-1); else if(PIN.buf.length < PIN_LEN) PIN.buf += k;
+  $$("#dots i").forEach((d,i)=> d.classList.toggle("f", i<PIN.buf.length));
+  if(PIN.err){ PIN.err = ""; const e = $("#pinerr"); if(e) e.textContent = ""; }
+  if(PIN.buf.length===PIN_LEN){ const p = PIN.buf, done = PIN.done; PIN.busy = true; PIN.done = null; setTimeout(()=>done(p), 120); }
+}
+function pinFail(msg){ PIN.err = msg; }
+
+/* ---- Lock screen ---- */
+function lockHTML(){ return `<div class="center">${LOGO}${heroHTML((ls.get(LS_UI)||{}).biz || "Bahi", !!PIN.err || PIN.shown)}${pinHTML()}<button class="btn ghost" data-act="forgot">${t("forgot")}</button></div>`; }
+async function lockLoop(){
+  UI.mode = "lock"; UI.sheet = null; F = null; PIN.shown = false;
+  const vault = ls.get(LS_VAULT) || Cloud.vault;
+  for(;;){
+    const tr = ls.get(LS_TRY) || {n:0, until:0};
+    const waitS = Math.ceil((tr.until - Date.now())/1000);
+    if(waitS > 0){ pinFail(t("wait", waitS)); }
+    const pin = await askPin(t("enterPin"), "");
+    if(UI.mode!=="lock") return;                    // erased or restored meanwhile
+    const tr2 = ls.get(LS_TRY) || {n:0, until:0};
+    if(tr2.until > Date.now()){ pinFail(t("wait", Math.ceil((tr2.until-Date.now())/1000))); continue; }
+    try{
+      const key = await deriveKey(pin, vault.salt, vault.iter);
+      const book = await decryptObj(key, vault);
+      KEY = key; V = {salt:vault.salt, iter:vault.iter}; S = migrate(book); heldPin = pin;
+      ls.del(LS_TRY); PIN.err = ""; enterApp(); return;
+    }catch(e){
+      const n = tr2.n + 1;                          // slow down guessing: 5 free tries, then 30 s, 60 s, 120 s ... up to 15 min
+      ls.set(LS_TRY, {n, until: n>=5 ? Date.now() + Math.min(900, 30*Math.pow(2,n-5))*1000 : 0});
+      pinFail(n>=5 ? t("wait", Math.min(900, 30*Math.pow(2,n-5))) : t("wrongPin"));
+    }
+  }
+}
+function enterApp(){
+  if(S.appVer !== APP_VER){
+    const v = ls.get(LS_VAULT), had = S.entries.length || S.parties.length || S.bills.length;
+    if(v && had) ls.set(LS_PREV, {...v, fromVer:S.appVer || "older", savedAt:Date.now()});   // undo path for this update
+    S.appVer = APP_VER; commit();
+    if(had) setTimeout(()=>toast(t("appUpdated", APP_VER)), 600);
+  }
+  UI.mode = "app"; applyPrefs(); D.led.date = today(); if(!D.bill.id && !D.bill.party) D.bill = blankBill(); render(); armIdle(); reconcile(); }
+async function lockNow(){ if(UI.mode!=="app") return; await saveNow(); S = null; KEY = null; heldPin = null; D.bill = blankBill(); D.led = {amt:"",note:"",date:today()}; hideToast(); lockLoop(); }
+function applyPrefs(){
+  if(S){ LANG = S.set.lang || "en"; }
+  const th = S ? S.set.theme : "auto";
+  const dark = th==="dark" || (th==="auto" && window.matchMedia && matchMedia("(prefers-color-scheme: dark)").matches);
+  document.documentElement.dataset.theme = dark ? "dark" : "light";
+  document.documentElement.lang = LANG;
+  ls.set(LS_UI, {lang:LANG, biz: S ? S.biz.name : ((ls.get(LS_UI)||{}).biz || "")});   // business name shown on the lock screen
+}
+
+/* ---- Bill screen ---- */
+function billHTML(){
+  if(D.bill.id!=null && !S.bills.find(x=>x.id===D.bill.id)) D.bill = blankBill();   // the bill being edited no longer exists
+  const b = D.bill, ed = b.id!=null, saved = ed ? S.bills.find(x=>x.id===b.id) : null;
+  const tip = (!S.tipDone && !ed) ? `<div class="tip"><div>${t("tip1")}<br>${t("tip2")}<br>${t("tip3")}</div><button class="xbtn" data-act="tipOff" aria-label="Close">×</button></div>` : "";
+  const nudge = (!ed && S.entries.length >= 10 && S.nudgeOff!==today() && (!S.lastBackup || dayDiff(S.lastBackup, today()) >= 7))
+    ? `<div class="nudge"><div class="sp">${t("backupNudge", S.lastBackup ? fdate(S.lastBackup) : t("never"))}</div><button class="btn pri" data-act="backup">${t("save")}</button><button class="xbtn" data-act="nudgeOff" aria-label="Close">×</button></div>` : "";
+  return `${tip}${nudge}<div class="row"><h2 style="margin:0">${ed ? t("billNo", saved.no) : t("newBill")}</h2><span class="sp"></span>
+    ${ed ? `<button class="chip" data-act="newBill">${t("newBill")}</button>` : ""}<button class="chip" data-act="goBills">${t("savedBills")}</button></div>
+    <div class="row mt3"><div class="sp">${fld("bill.party","text",t("party"))}</div><button class="datechip ${b.date!==today()?"old":""}" data-act="pickDate" data-arg="bill.date">${fdate(b.date)}</button></div>
+    <div class="bhead"><span>${t("item")}</span><span>${t("qty")}</span><span>${t("rate")}</span><span>${t("amount")}</span><span></span></div>
+    ${b.rows.map((r,i)=>`<div class="brow">${fld(`bill.rows.${i}.item`,"text",t("item"))}${fld(`bill.rows.${i}.qty`,"num","0")}${fld(`bill.rows.${i}.rate`,"num","0")}<div class="sub" id="sub${i}"></div>${b.rows.length>1?`<button class="xbtn" data-act="delRow" data-arg="${i}" aria-label="Remove">×</button>`:"<span></span>"}</div>`).join("")}
+    <button class="btn ghost" data-act="addRow">${t("addItem")}</button>
+    <div class="tot"><span class="mut">${t("subTotal")}</span><span id="bsub"></span></div>
+    <div class="tot"><span class="mut">${t("transport")}</span><div style="width:62%">${fld("bill.transport","calc","0")}</div></div>
+    ${ed ? `<div class="row mt3"><button class="btn" style="flex:1" data-act="shareBill" data-arg="${b.id}">${t("share")}</button><button class="btn" style="flex:1;color:var(--red)" data-act="askDelBill" data-arg="${b.id}">${t("del")}</button></div>` : ""}
+    <div class="bbar"><div><div class="sm mut">${t("grand")}</div><div class="mid" id="bgrand"></div></div><button class="btn pri" data-act="saveBill">${t(ed?"saveChanges":"saveBill")}</button></div>`;
+}
+function billMath(b){ let sub = 0; const subs = b.rows.map(r => { const s = r2(num(r.rate)*num(r.qty)); sub += s; return s; }); sub = r2(sub); return {subs, sub, grand:r2(sub + evalCalc(b.transport))}; }
+function paintBillTotals(){
+  const m = billMath(D.bill);
+  m.subs.forEach((s,i)=>{ const el = $("#sub"+i); if(el) el.textContent = s ? plain(s) : ""; });
+  const a = $("#bsub"), g = $("#bgrand"); if(a) a.textContent = money(m.sub); if(g) g.textContent = money(m.grand);
+}
+
+/* ---- Ledger screen ---- */
+function ledgerHTML(){
+  const p = partyById(UI.pid);
+  if(!S.parties.length) return `<div class="empty" style="margin:auto"><b>${t("noParties")}</b>${t("noPartiesSub")}<br><br><button class="btn pri" style="margin:auto" data-act="pickParty">${t("addParty")}</button></div>`;
+  const recent = recentParties().slice(0,8);
+  const chips = `<div class="chips" style="margin-top:8px">${recent.map(x=>`<button class="chip ${x.id===UI.pid?"on":""}" data-act="setParty" data-arg="${x.id}">${esc(x.name)}</button>`).join("")}</div>`;
+  if(!p) return `<div class="ltop"><button class="pname" data-act="pickParty"><span>${t("chooseParty")}</span> ▾</button>${chips}</div><div class="empty" style="margin:auto"><b>${t("chooseParty")}</b></div>`;
+  const es = sortedEntries(p.id); let run = 0, tp = 0, tb = 0;
+  es.forEach(e => { if(e.type==="bill"){ run += e.amt; tb += e.amt; } else { run -= e.amt; tp += e.amt; } }); run = r2(run);
+  const cell = e => `<button class="lrow ${e.id===UI.lastNew?"new":""}" data-act="entryMenu" data-arg="${e.id}"><span class="d">${fdate(e.date)}</span><span class="a ${e.type==="bill"?"r":"g"}">${plain(e.amt)}</span>${e.note?`<span class="n">${esc(e.note)}</span>`:""}</button>`;
+  const side = type => `<div class="lside">${es.filter(e=>e.type===type).map(cell).join("")}</div>`;
+  const rows = es.length ? `<div class="lsides">${side("paid")}${side("bill")}</div>` : "";
+  const heads = `<div class="lheads"><div class="g"><span>${t("paid")}</span><b>${money(tp)}</b></div><div class="r"><span>${t("billed")}</span><b>${money(tb)}</b></div></div>`;
+  const balCls = run>0 ? "r" : run<0 ? "g" : "", balLbl = run>0 ? t("toReceive") : run<0 ? t("advance") : t("settled");
+  return `<div class="ltop"><div class="row"><button class="pname" data-act="pickParty"><span>${esc(p.name)}</span> ▾</button><span class="sp"></span>
+      <div style="text-align:right;flex:none"><div class="sm mut">${balLbl}</div><div class="bal ${money(Math.abs(run)).length>9?"mid":"big"} ${balCls} ${UI.lastNew?"pop":""}" id="bal">${money(Math.abs(run))}</div></div></div>${chips}</div>
+    ${heads}<div class="llist">${rows || `<div class="empty"><b>${t("noEntries")}</b>${t("noEntriesSub")}</div>`}</div>
+    <div class="lentry"><button class="datechip ${D.led.date!==today()?"old":""}" data-act="pickDate" data-arg="led.date">${fdate(D.led.date)}</button>${fld("led.amt","num","0","amt")}${fld("led.note","text",t("note"))}</div>`;
+}
+/** Parties ordered by their most recent entry, for one-tap switching. */
+function recentParties(){
+  const last = new Map(); S.entries.forEach(e => { if((last.get(e.pid)||0) < e.id) last.set(e.pid, e.id); });
+  return [...S.parties].sort((a,b)=> (last.get(b.id)||0) - (last.get(a.id)||0));
+}
+
+/* ---- Parties screen ---- */
+function partiesHTML(){
+  const st = allStats(); let rec = 0, adv = 0, due = 0;
+  st.forEach(x => { if(x.bal>0) rec += x.bal; else adv -= x.bal; if(x.overdue) due++; });
+  const sum = S.parties.length ? `<div class="card psum"><div><div class="sm mut">${t("toReceive")}</div><div class="mid r">${money(rec)}</div></div><div style="text-align:right"><div class="sm mut">${t("advance")}</div><div class="mid g">${money(adv)}</div></div></div>
+    <div class="chips mt3"><button class="chip ${UI.pf==="all"?"on":""}" data-act="pFilter" data-arg="all">${t("all")} · ${S.parties.length}</button><button class="chip ${UI.pf==="due"?"on":""}" data-act="pFilter" data-arg="due">${t("overdueF")} · ${due}</button></div>` : "";
+  return `<div class="row"><h2 style="margin:0">${t("parties")}</h2><span class="sp"></span><button class="chip on" data-act="editParty">${t("addParty")}</button></div>
+    ${sum}<div class="mt3">${fld("q.parties","text",t("searchParty"))}</div><div id="plist">${partyListHTML()}</div>`;
+}
+function partyListHTML(){
+  if(!S.parties.length) return `<div class="empty"><b>${t("noParties")}</b>${t("noPartiesSub")}</div>`;
+  const st = allStats(), q = D.q.parties.toLowerCase();
+  const list = S.parties.filter(p => p.name.toLowerCase().includes(q) && (UI.pf!=="due" || st.get(p.id).overdue))
+    .sort((a,b)=> UI.pf==="due" ? st.get(b.id).overdue - st.get(a.id).overdue : st.get(b.id).turn - st.get(a.id).turn || a.name.localeCompare(b.name));
+  if(!list.length) return `<div class="empty">${t(UI.pf==="due" && !q ? "noDue" : "noMatch")}</div>`;
+  return list.map(p => { const s = st.get(p.id);
+    return `<button class="card pcard" data-act="partyMenu" data-arg="${p.id}"><div class="t"><span>${esc(p.name)}</span><span class="${s.bal>0?"r":s.bal<0?"g":"mut"}">${money(Math.abs(s.bal))}</span></div>
+      <div class="s">${s.overdue?`<span class="badge">${t("overdue", s.overdue)}</span>`:""}<span>${t("turnover")} ${money(s.turn)}</span><span>${t("lastPaid")}: ${s.lastPaid?fdate(s.lastPaid):t("never")}</span><span>${t("lastBill")}: ${s.lastBill?fdate(s.lastBill):t("never")}</span></div></button>`; }).join("");
+}
+
+/* ---- More screen and its sub-pages ---- */
+function moreHTML(){
+  const back = `<button class="chip" data-act="sub" data-arg="">‹ ${t("more")}</button>`;
+  if(UI.sub==="cash"){
+    return `<div class="row">${back}<span class="sp"></span><button class="chip" data-act="cashClear">${t("cashClear")}</button></div><h2 style="margin-top:12px">${t("cash")}</h2>
+      ${NOTES.map(n=>`<div class="row" style="margin-top:8px"><div style="width:64px;font-weight:700">₹${n}</div><span class="mut">×</span><div style="width:100px">${fld("cash."+n,"int","0")}</div><span class="sp"></span><span id="cs${n}" style="font-variant-numeric:tabular-nums"></span></div>`).join("")}
+      <div class="tot mt3"><b>${t("cashTotal")}</b><span class="mid" id="ctot"></span></div>`;
+  }
+  if(UI.sub==="bills") return `<div class="row">${back}</div><h2 style="margin-top:12px">${t("allBills")}</h2>${fld("q.bills","text",t("searchBills"))}<div id="blist">${billListHTML()}</div>`;
+  if(UI.sub==="items") return `<div class="row wrap">${back}<span class="sp"></span><button class="chip" data-act="shareRates">${t("shareRates")}</button><button class="chip on" data-act="editItem">${t("addItemC")}</button></div>
+    <h2 class="mt3">${t("catalogue")}</h2>${fld("q.items","text",t("searchItem"))}<div id="ilist">${itemListHTML()}</div>`;
+  if(UI.sub==="report"){
+    const rows = itemReport(UI.rep), tot = r2(rows.reduce((a,x)=>a+x.amt,0));
+    return `<div class="row">${back}</div><h2 class="mt3">${t("report")}</h2>
+      <div class="chips">${["month","last","year","all"].map(k=>`<button class="chip ${UI.rep===k?"on":""}" data-act="repPeriod" data-arg="${k}">${repName(k)}</button>`).join("")}</div>
+      ${rows.length ? `<div class="tot mt3"><div><b>${t("repTotal")}</b><div class="sm mut">${t("repNote")}</div></div><span class="mid">${money(tot)}</span></div>
+        ${rows.map(x=>`<div class="card pcard"><div class="t"><span>${esc(x.item)}</span><span>${money(x.amt)}</span></div><div class="s"><span>${t("qty")} ${plain(x.qty)}</span><span>${t("bills", x.n)}</span><span>${t("rate")} ${plain(x.qty ? x.amt/x.qty : 0)}</span></div></div>`).join("")}
+        <div class="row mt4"><button class="btn sp" data-act="shareReport">${t("share")}</button><button class="btn sp" data-act="csv" data-arg="items">${t("csvReport")}</button></div>`
+      : `<div class="empty"><b>${t("repNone")}</b>${t("repNoneSub")}</div>`}`;
+  }
+  if(UI.sub==="safe") return `<div class="row">${back}</div><h2 style="margin-top:12px">${t("safety")}</h2><div class="card" style="padding:16px">${[1,2,3,4,5,6].map(i=>`<p style="margin:0 0 12px">${t("safe"+i)}</p>`).join("")}</div>`;
+  const th = {auto:t("auto"), light:t("light"), dark:t("dark")};
+  return `<h2>${t("more")}</h2>
+    <div class="card menu"><button data-act="sub" data-arg="report">${t("report")}<span class="v">›</span></button><button data-act="sub" data-arg="items">${t("catalogue")}<span class="v">${S.items.length} ›</span></button><button data-act="sub" data-arg="cash">${t("cash")}<span class="v">›</span></button><button data-act="sub" data-arg="bills">${t("allBills")}<span class="v">${S.bills.length} ›</span></button></div>
+    <div class="sect">${t("dataSect")}</div>
+    <div class="card menu"><button data-act="backup">${t("backup")}<span class="v">${S.lastBackup ? fdate(S.lastBackup) : t("never")}</span></button><button data-act="restorePick">${t("restore")}</button>${(()=>{ const pv = ls.get(LS_PREV); return pv ? `<button data-act="restorePrev">${t("prevData")}<span class="v">${fdate(iso(new Date(pv.savedAt||pv.rev)))}</span></button>` : ""; })()}<button data-act="csv" data-arg="ledger">${t("csvLedger")}</button><button data-act="csv" data-arg="bills">${t("csvBills")}</button></div>
+    <div class="sect">${t("settings")}</div>
+    <div class="card menu"><button data-act="editBiz">${t("bizName")}<span class="v">${esc(S.biz.name)}</span></button>
+      <button data-act="cycle" data-arg="lang">${t("language")}<span class="v">${LANG==="hi"?"हिंदी":"English"}</span></button>
+      <button data-act="cycle" data-arg="theme">${t("theme")}<span class="v">${th[S.set.theme]}</span></button>
+      <button data-act="editCredit">${t("defCredit")}<span class="v">${S.set.credit}</span></button>
+      <button data-act="cycle" data-arg="lock">${t("autoLock")}<span class="v">${t("minutes", S.set.lock)}</span></button>
+      <button data-act="changePin">${t("changePin")}</button><button data-act="sub" data-arg="safe">${t("safety")}<span class="v">›</span></button></div>
+    ${installEvt ? `<div class="card menu" style="margin-top:16px"><button data-act="install">${t("installApp")}</button></div>` : ""}
+    <div class="sm mut" style="text-align:center;margin-top:24px">Bahi · ${t("version")} ${APP_VER}</div>
+    <div class="card menu" style="margin-top:24px"><button data-act="askErase" style="color:var(--red)">${t("erase")}</button></div>`;
+}
+function itemListHTML(){
+  if(!S.items.length) return `<div class="empty"><b>${t("noItems")}</b>${t("noItemsSub")}</div>`;
+  const q = D.q.items.toLowerCase();
+  return [...S.items].filter(x => x.name.toLowerCase().includes(q)).sort((a,b)=>a.name.localeCompare(b.name))
+    .map(x => `<button class="card pcard" data-act="editItem" data-arg="${x.id}"><div class="t"><span>${esc(x.name)}</span><span>${money(x.rate)}${x.unit?` <span class="sm mut">/ ${esc(x.unit)}</span>`:""}</span></div></button>`).join("");
+}
+const NOTES = [500,200,100,50,20,10,5,2,1];
+function paintCash(){ let tot = 0; NOTES.forEach(n => { const s = n*num(D.cash[n]); tot += s; const el = $("#cs"+n); if(el) el.textContent = s ? money(s) : ""; }); const e = $("#ctot"); if(e) e.textContent = money(tot); if(S){ S.cash = {...D.cash}; commit(); } }
+function billListHTML(){
+  if(!S.bills.length) return `<div class="empty"><b>${t("noBills")}</b>${t("noBillsSub")}</div>`;
+  const q = D.q.bills.toLowerCase();
+  const list = S.bills.filter(b => { if(!q) return true; const p = partyById(b.pid); return (p&&p.name.toLowerCase().includes(q)) || String(b.no)===q || b.rows.some(r=>r.item.toLowerCase().includes(q)); })
+    .sort((a,b)=> a.date<b.date?1:a.date>b.date?-1:b.id-a.id).slice(0,200);
+  return list.map(b => { const p = partyById(b.pid);
+    return `<button class="card pcard" data-act="openBill" data-arg="${b.id}"><div class="t"><span>${esc(p?p.name:"")}</span><span>${money(b.total)}</span></div><div class="s"><span>${t("billNo", b.no)}</span><span>${fdate(b.date)}</span><span>${b.rows.length===1 ? t("item1") : t("items", b.rows.length)}</span></div></button>`; }).join("");
+}
+
+/* ---------------------------------------------------------------
+   8. SHEETS. One dialog at a time, drawn over the screen.
+   UI.sheet = {type, ...data}
+   --------------------------------------------------------------- */
+function openSheet(s){ UI.sheet = s; F = null; render(); if(s.focus) focusField(s.focus); }
+function closeSheet(){ UI.sheet = null; F = null; render(); }
+function renderSheet(){
+  const el = $("#sheet"), s = UI.sheet;
+  if(!s){ el.classList.add("hide"); el.innerHTML = ""; return; }
+  el.classList.remove("hide");
+  let h = "";
+  if(s.type==="confirm") h = `<h3>${esc(s.title)}</h3><div class="mut">${esc(s.sub||"")}</div><div class="acts"><button class="btn" data-act="closeSheet">${t("cancel")}</button><button class="btn ${s.danger?"red":"pri"}" data-act="confirmYes">${esc(s.yes)}</button></div>`;
+  else if(s.type==="date"){
+    const [y,m,d] = s.val.split("-").map(Number), ny = new Date().getFullYear();
+    const months = Array.from({length:12},(_,i)=> new Date(2000,i,1).toLocaleDateString(LANG==="hi"?"hi-IN":"en-IN",{month:"short"}));
+    h = `<h3>${t("date")}</h3><div class="chips" style="margin-top:8px"><button class="chip" data-act="dateQuick" data-arg="0">${t("today")}</button><button class="chip" data-act="dateQuick" data-arg="1">${t("yesterday")}</button></div>
+      <div class="wheel"><div class="col" id="wd">${Array.from({length:31},(_,i)=>`<div>${i+1}</div>`).join("")}</div><div class="col" id="wm">${months.map(x=>`<div>${x}</div>`).join("")}</div><div class="col" id="wy">${[ny-2,ny-1,ny,ny+1].map(x=>`<div>${x}</div>`).join("")}</div></div>
+      <div class="acts"><button class="btn" data-act="dateCancel">${t("cancel")}</button><button class="btn pri" data-act="dateDone">${t("done")}</button></div>`;
+    setTimeout(()=>{ const set = (id,i)=>{ const c = $("#"+id); if(c) c.scrollTop = i*44; }; set("wd",d-1); set("wm",m-1); set("wy",Math.max(0,Math.min(3,y-(ny-2)))); }, 0);
+  }
+  else if(s.type==="pick") h = `<h3>${t("chooseParty")}</h3><div style="margin-top:8px">${fld("q.pick","text",t("searchParty"))}</div><div id="picklist" style="max-height:38vh;overflow:auto">${pickListHTML()}</div><div class="acts"><button class="btn" data-act="closeSheet">${t("cancel")}</button></div>`;
+  else if(s.type==="party") h = `<h3>${s.id ? t("edit") : t("addParty")}</h3><label class="lb">${t("name")}</label>${fld("party.name","text",t("party"))}<label class="lb">${t("phone")}</label>${fld("party.phone","tel","98XXXXXXXX")}<label class="lb">${t("creditDays")}</label>${fld("party.credit","int",String(S.set.credit))}
+      <div class="acts"><button class="btn" data-act="closeSheet">${t("cancel")}</button><button class="btn pri" data-act="saveParty" data-enter>${t("save")}</button></div>
+      ${s.id ? `<button class="btn ghost wide" style="color:var(--red)" data-act="delParty" data-arg="${s.id}">${t("del")}</button>` : ""}`;
+  else if(s.type==="item") h = `<h3>${s.id ? t("edit") : t("addItemC")}</h3><label class="lb">${t("item")}</label>${fld("item.name","text",t("item"))}<label class="lb">${t("rate")}</label>${fld("item.rate","num","0")}<label class="lb">${t("unit")}</label>${fld("item.unit","text","kg")}
+      <div class="acts"><button class="btn" data-act="closeSheet">${t("cancel")}</button><button class="btn pri" data-act="saveItem" data-enter>${t("save")}</button></div>
+      ${s.id ? `<button class="btn ghost wide" style="color:var(--red)" data-act="delItem" data-arg="${s.id}">${t("del")}</button>` : ""}`;
+  else if(s.type==="pmenu"){
+    const p = partyById(s.id), st = allStats().get(p.id);
+    h = `<h3>${esc(p.name)}</h3><div class="${st.bal>0?"r":st.bal<0?"g":"mut"} mid">${st.bal>0?t("toReceive"):st.bal<0?t("advance"):t("settled")} ${money(Math.abs(st.bal))}</div>
+      ${st.overdue?`<span class="badge">${t("overdue", st.overdue)}</span>`:""}
+      <div class="card menu" style="margin-top:12px"><button data-act="setParty" data-arg="${p.id}">${t("openLedger")}</button><button data-act="billFor" data-arg="${p.id}">${t("newBill")}</button>
+      <button data-act="remind" data-arg="${p.id}">${t("remind")}</button><button data-act="shareStmt" data-arg="${p.id}">${t("statement")}</button><button data-act="editParty" data-arg="${p.id}">${t("edit")}</button></div>
+      <div class="acts"><button class="btn" data-act="closeSheet">${t("cancel")}</button></div>`;
+  }
+  else if(s.type==="emenu"){
+    const e = S.entries.find(x=>x.id===s.id), p = partyById(e.pid);
+    h = `<h3>${esc(p.name)}</h3><div class="mut">${fdate(e.date,true)} · ${esc(e.note||"")}</div><div class="${e.type==="bill"?"r":"g"} mid">${t(e.type==="bill"?"billed":"paid")} ${money(e.amt)}</div>
+      <div class="acts">${e.billId?`<button class="btn" data-act="openBill" data-arg="${e.billId}">${t("openBill")}</button>`:`<button class="btn" data-act="editEntry" data-arg="${e.id}">${t("edit")}</button>`}<button class="btn red" data-act="delEntry" data-arg="${e.id}">${t("del")}</button></div>
+      <button class="btn ghost wide" data-act="closeSheet">${t("cancel")}</button>`;
+  }
+  else if(s.type==="eedit"){
+    const e = S.entries.find(x=>x.id===s.id), p = partyById(e.pid), ty = D.edit.type;
+    // compact so Save stays above the keypad on small phones
+    h = `<h3>${t("editEntry")}</h3><div class="mut">${esc(p.name)}</div>
+      <div class="row mt3"><button class="btn sp ${ty==="paid"?"green":""}" data-act="editType" data-arg="paid">${t("paid")}</button><button class="btn sp ${ty==="bill"?"red":""}" data-act="editType" data-arg="bill">${t("billed")}</button></div>
+      <div class="row mt2"><div class="sp">${fld("edit.amt","num",t("amount"))}</div><button class="datechip ${D.edit.date!==today()?"old":""}" data-act="pickDate" data-arg="edit.date">${fdate(D.edit.date)}</button></div>
+      <div class="mt2">${fld("edit.note","text",t("note"))}</div>
+      <div class="acts"><button class="btn" data-act="closeSheet">${t("cancel")}</button><button class="btn pri" data-act="saveEntry" data-enter>${t("save")}</button></div>`;
+  }
+  else if(s.type==="share"){
+    h = `<h3>${esc(s.title)}</h3><pre id="sharetext" class="sharetext">${esc(s.text)}</pre>
+      <div class="acts"><a class="btn green" target="_blank" rel="noopener" href="https://wa.me/${s.phone?"91"+s.phone:""}?text=${encodeURIComponent(s.text)}">${t("whatsapp")}</a><button class="btn" data-act="copyShare">${t("copy")}</button></div>
+      ${s.doc ? `<div class="acts"><button class="btn" data-act="saveImage">${t("image")}</button><button class="btn" data-act="savePdf">${t("pdf")}</button></div>` : ""}
+      <button class="btn ghost wide" data-act="closeSheet">${t("done")}</button>`;
+  }
+  else if(s.type==="text") h = `<h3>${esc(s.title)}</h3><label class="lb">${esc(s.label)}</label>${fld(s.path, s.kind, s.ph||"")}<div class="acts"><button class="btn" data-act="closeSheet">${t("cancel")}</button><button class="btn pri" data-act="textSave" data-enter>${t("save")}</button></div>`;
+  else if(s.type==="pin") h = `<div style="display:flex;flex-direction:column;align-items:center">${pinHTML()}<button class="btn ghost" data-act="pinCancel">${t("cancel")}</button></div>`;
+  else if(s.type==="forgot") h = `<h3>${t("forgotT")}</h3><p class="mut">${t("forgotSub")}</p><div class="acts"><button class="btn" data-act="closeSheet">${t("cancel")}</button><button class="btn red" data-act="askErase">${t("erase")}</button></div>`;
+  el.innerHTML = `<div class="box">${h}</div>`;
+}
+function pickListHTML(){
+  const q = D.q.pick.trim(), ql = q.toLowerCase();
+  const list = recentParties().filter(p => p.name.toLowerCase().includes(ql));
+  const add = q && !findParty(q) ? `<button class="card pcard" data-act="pickNew"><div class="t" style="color:var(--acc)">${esc(t("addNew", q))}</div></button>` : "";
+  return list.map(p=>`<button class="card pcard" data-act="setParty" data-arg="${p.id}"><div class="t"><span>${esc(p.name)}</span></div></button>`).join("") + add
+    || `<div class="empty">${t("noPartiesSub")}</div>`;
+}
+
+/* ---- Toast with optional Undo ---- */
+let toastTimer = 0, undoSnap = null;
+function toast(msg, withUndo){
+  const el = $("#toast"); clearTimeout(toastTimer);
+  el.innerHTML = `<span>${esc(msg)}</span>${withUndo?`<button data-act="undo">${t("undo")}</button>`:""}`;
+  el.classList.remove("hide"); toastTimer = setTimeout(hideToast, withUndo?7000:3200);
+}
+function hideToast(){ $("#toast").classList.add("hide"); }
+/** Remember the book as it is now, so the next action can be undone. */
+function snap(){ undoSnap = JSON.stringify(S); }
+
+/* ---------------------------------------------------------------
+   9. SHARING, BACKUP, EXPORT
+   --------------------------------------------------------------- */
+function billText(b){
+  const p = partyById(b.pid);
+  const lines = b.rows.map((r,i)=>`${i+1}. ${r.item||"-"}  ${plain(r.qty)} x ${plain(r.rate)} = ${money(r2(r.qty*r.rate))}`);
+  return `*${S.biz.name||"Bahi"}*\n${t("billNo", b.no)} · ${fdate(b.date,true)}\n${t("partyL")}: ${p?p.name:""}\n\n${lines.join("\n")}\n${b.transport?`${t("transport")}${b.tcalc?` (${calcPlain(b.tcalc)})`:""}: ${money(b.transport)}\n`:""}*${t("grand")}: ${money(b.total)}*`;
+}
+function billDoc(b){
+  const p = partyById(b.pid), foot = [];
+  if(b.transport){ foot.push([t("subTotal"), money(r2(b.total-b.transport))]); foot.push([t("transport") + (b.tcalc ? ` (${calcPlain(b.tcalc)})` : ""), money(b.transport)]); }
+  foot.push([t("grand"), money(b.total), true]);
+  return {name:`bill-${b.no}`, title:S.biz.name||"Bahi", sub:[`${t("billNo", b.no)}   ${fdate(b.date,true)}`, `${t("partyL")}: ${p?p.name:""}`],
+    head:["#",t("item"),t("qty"),t("rate"),t("amount")], w:[.07,.43,.14,.16,.20], al:["l","l","r","r","r"],
+    rows:b.rows.map((r,i)=>[String(i+1), r.item||"-", plain(r.qty), plain(r.rate), plain(r2(r.qty*r.rate))]), foot};
+}
+/** Statement = last 60 entries with an opening balance row for anything older. */
+function stmtParts(pid){
+  const es = sortedEntries(pid), cut = Math.max(0, es.length-60); let run = 0;
+  es.slice(0,cut).forEach(e => run += e.type==="bill" ? e.amt : -e.amt);
+  const open = r2(run), rows = es.slice(cut).map(e => { run = r2(run + (e.type==="bill"?e.amt:-e.amt)); return {e, run}; });
+  return {open, cut, rows, bal:r2(run)};
+}
+function stmtText(pid){
+  const p = partyById(pid), s = stmtParts(pid);
+  const label = e => e.billId ? e.note : t(e.type==="bill"?"billed":"paid") + (e.note ? ` (${e.note})` : "");
+  const lines = s.rows.slice(-25).map(({e,run}) => `${fdate(e.date)}  ${label(e)}  ${e.type==="paid"?"-":"+"}${plain(e.amt)}  = ${plain(run)}`);
+  return `*${S.biz.name||"Bahi"}*\n${p.name}\n\n${lines.join("\n")}\n\n*${s.bal>=0?t("toReceive"):t("advance")}: ${money(Math.abs(s.bal))}*`;
+}
+function stmtDoc(pid){
+  const p = partyById(pid), s = stmtParts(pid);
+  const rows = s.rows.map(({e,run}) => [fdate(e.date,true), e.note||"", e.type==="paid"?plain(e.amt):"", e.type==="bill"?plain(e.amt):"", plain(run)]);
+  if(s.cut) rows.unshift(["", t("opening_bal"), "", "", plain(s.open)]);
+  return {name:"statement-"+p.name.replace(/[^a-z0-9]+/gi,"-").toLowerCase(), title:S.biz.name||"Bahi", sub:[p.name, fdate(today(),true)],
+    head:[t("date"),t("note"),t("paid"),t("billed"),t("balance")], w:[.2,.26,.18,.18,.18], al:["l","l","r","r","r"], rows,
+    colors:{2:"#157F43",3:"#C2352B"}, foot:[[s.bal>=0?t("toReceive"):t("advance"), money(Math.abs(s.bal)), true]]};
+}
+function ratesText(){ return `*${S.biz.name||"Bahi"}*\n${t("rateChart")} · ${fdate(today(),true)}\n\n` + [...S.items].sort((a,b)=>a.name.localeCompare(b.name)).map((x,i)=>`${i+1}. ${x.name} - ${money(x.rate)}${x.unit?" / "+x.unit:""}`).join("\n"); }
+function ratesDoc(){ return {name:"rate-chart-"+today(), title:S.biz.name||"Bahi", sub:[t("rateChart"), fdate(today(),true)], head:["#",t("item"),t("rate"),""], w:[.08,.52,.22,.18], al:["l","l","r","l"],
+  rows:[...S.items].sort((a,b)=>a.name.localeCompare(b.name)).map((x,i)=>[String(i+1), x.name, plain(x.rate), x.unit?"/ "+x.unit:""]), foot:[]}; }
+function repName(k){ if(k==="year"){ const [a,b] = repRange("year"); return t("fy", a.slice(0,4)+"-"+b.slice(2,4)); } return t({month:"repMonth", last:"repLast", all:"repAll"}[k]); }
+function repLabel(){ return repName(UI.rep); }
+function reportText(){ const rows = itemReport(UI.rep); return `*${S.biz.name||"Bahi"}*\n${t("report")} · ${repLabel()}\n\n` + rows.map((x,i)=>`${i+1}. ${x.item} - ${t("qty")} ${plain(x.qty)} = ${money(x.amt)}`).join("\n") + `\n\n*${t("repTotal")}: ${money(rows.reduce((a,x)=>a+x.amt,0))}*`; }
+function reportDoc(){ const rows = itemReport(UI.rep); return {name:"item-sales-"+UI.rep+"-"+today(), title:S.biz.name||"Bahi", sub:[t("report"), repLabel()+"   "+fdate(today(),true)], head:["#",t("item"),t("qty"),t("amount")], w:[.08,.50,.18,.24], al:["l","l","r","r"],
+  rows:rows.map((x,i)=>[String(i+1), x.item, plain(x.qty), plain(x.amt)]), foot:[[t("repTotal"), money(rows.reduce((a,x)=>a+x.amt,0)), true]]}; }
+/** Draw a bill or statement on a canvas (works for Hindi too, since the device font draws it). */
+function drawDoc(doc){
+  const Wd = 900, P = 40, RH = 40, top = 70 + doc.sub.length*32 + 30;
+  const H = top + RH*(doc.rows.length+1) + doc.foot.length*46 + 70;
+  const c = document.createElement("canvas"); c.width = Wd; c.height = H; const x = c.getContext("2d");
+  const font = (s,b) => x.font = `${b?"700 ":""}${s}px system-ui,"Noto Sans","Noto Sans Devanagari",sans-serif`;
+  x.fillStyle = "#FFFDF6"; x.fillRect(0,0,Wd,H); x.fillStyle = "#1E2740"; x.textBaseline = "middle";
+  font(34,true); x.fillText(doc.title, P, 50);
+  font(22); doc.sub.forEach((s,i)=> x.fillText(s, P, 100 + i*32));
+  const cw = doc.w.map(f => f*(Wd-2*P)); let y = top;
+  const cell = (txt,i,yy,color) => { let cx = P; for(let k=0;k<i;k++) cx += cw[k]; x.fillStyle = color||"#1E2740";
+    if(doc.al[i]==="r"){ x.textAlign = "right"; x.fillText(txt, cx+cw[i]-6, yy); } else { x.textAlign = "left"; let s = String(txt); while(s.length>1 && x.measureText(s).width > cw[i]-10) s = s.slice(0,-2)+"…"; x.fillText(s, cx+6, yy); } x.textAlign = "left"; };
+  x.fillStyle = "#1E2740"; x.fillRect(P, y, Wd-2*P, RH); font(19,true); doc.head.forEach((h,i)=> cell(h,i,y+RH/2,"#FFFDF6")); y += RH;
+  font(20); doc.rows.forEach(r => { r.forEach((v,i)=> cell(v,i,y+RH/2, doc.colors&&doc.colors[i])); x.fillStyle = "#E2D8C2"; x.fillRect(P, y+RH-1, Wd-2*P, 1); y += RH; });
+  y += 14; doc.foot.forEach(f => { font(f[2]?28:22, f[2]); x.fillStyle = "#1E2740"; x.textAlign = "left"; x.fillText(f[0], P+6, y+23); x.textAlign = "right"; x.fillText(f[1], Wd-P-6, y+23); y += 46; });
+  x.textAlign = "left"; font(15); x.fillStyle = "#7A7566"; x.fillText("Bahi", P, H-28);
+  return c;
+}
+async function saveFile(filename, data){
+  let dl = null; try{ dl = window.claude && window.claude.use ? await window.claude.use("downloads") : null; }catch(e){}
+  if(!dl && !window.claude){
+    try{
+      const ext = filename.split(".").pop(), type = {png:"image/png", pdf:"application/pdf", csv:"text/csv", json:"application/json"}[ext] || "application/octet-stream";
+      const a = document.createElement("a"); a.href = URL.createObjectURL(new Blob([data], {type})); a.download = filename;
+      document.body.appendChild(a); a.click(); a.remove(); setTimeout(()=>URL.revokeObjectURL(a.href), 5000);
+      toast(t("fileSaved")); return true;
+    }catch(e){ toast(t("fileNA")); return false; }
+  }
+  if(!dl){ toast(t("fileNA")); return false; }
+  try{ await dl.save({filename, data}); toast(t("fileSaved")); return true; }
+  catch(e){ toast(e && e.code==="declined" ? t("fileNo") : t("fileNA")); return false; }
+}
+const canvasBlob = (c,type,q) => new Promise(r => c.toBlob(r, type, q));
+let jspdfLoad = null;
+function loadJsPdf(){ return jspdfLoad || (jspdfLoad = new Promise((res,rej)=>{ const s = document.createElement("script"); s.src = "https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"; s.onload = ()=>res(window.jspdf.jsPDF); s.onerror = ()=>{ jspdfLoad = null; rej(); }; document.head.appendChild(s); })); }
+async function copyText(txt){ try{ await navigator.clipboard.writeText(txt); toast(t("copied")); }catch(e){ toast(t("copyFail")); } }
+function csvLine(a){ return a.map(v => { v = String(v==null?"":v); return /[",\n]/.test(v) ? '"'+v.replace(/"/g,'""')+'"' : v; }).join(","); }
+
+/* ---------------------------------------------------------------
+   10. ACTIONS. Every button calls one of these by name (data-act).
+   --------------------------------------------------------------- */
+const A = {
+  /* navigation */
+  tab(k){ UI.tab = k; UI.sub = null; UI.lastNew = null; F = null; render(); if(k==="led" && partyById(UI.pid)) focusField("led.amt"); },
+  sub(k){ UI.sub = k || null; F = null; if(k==="cash") D.cash = {...S.cash}; render(); if(k==="cash") paintCashOnly(); },
+  goBills(){ UI.tab = "more"; UI.sub = "bills"; F = null; render(); },
+  closeSheet(){ closeSheet(); },
+  toggleKeys(){ UI.showKeys = !UI.showKeys; drawKeys(); },
+  lockNow(){ lockNow(); },
+  tipOff(){ S.tipDone = true; commit(); render(); },
+
+  /* welcome */
+  lang(l){ LANG = l; if(S){ S.set.lang = l; commit(); } applyPrefs(); render(); },
+  async onbNext(){
+    if(!D.onb.biz.trim()){ bad("onb.biz"); return; }
+    blurField(); UI.onb = 1; PIN.err = "";
+    for(;;){
+      const a = await askPin(t("setPin"), t("setPinSub")); if(UI.mode!=="onb") return;
+      const b = await askPin(t("pinAgain"), ""); if(UI.mode!=="onb") return;
+      if(a===b){ await createVault(a, newBook(D.onb.biz.trim())); break; }
+      pinFail(t("pinNoMatch"));
+    }
+    UI.onb = 2; render(); focusField("onb.party");
+  },
+  onbDone(arg){
+    const n = D.onb.party.trim();
+    if(arg!=="skip" && n){ const p = ensureParty(n); UI.pid = p.id; D.bill.party = p.name; commit(); }
+    D.onb = {biz:"", party:""}; F = null; UI.tab = "bill"; enterApp();
+  },
+
+  /* bill */
+  addRow(){ D.bill.rows.push({item:"",rate:"",qty:""}); render(); focusField(`bill.rows.${D.bill.rows.length-1}.item`); },
+  delRow(i){ D.bill.rows.splice(+i,1); F = null; render(); },
+  newBill(){ D.bill = blankBill(); F = null; UI.tab = "bill"; render(); },
+  billFor(id){ D.bill = blankBill(); D.bill.party = partyById(+id).name; UI.sheet = null; UI.tab = "bill"; render(); focusField("bill.rows.0.item"); },
+  openBill(id){
+    const b = S.bills.find(x=>x.id===+id); if(!b) return; const p = partyById(b.pid);
+    D.bill = {id:b.id, party:p?p.name:"", date:b.date, rows:b.rows.map(r=>({item:r.item, rate:String(r.rate), qty:String(r.qty)})), transport:b.tcalc || (b.transport?String(b.transport):"")};
+    UI.sheet = null; UI.tab = "bill"; F = null; render();
+  },
+  saveBill(){
+    const d = D.bill, name = d.party.trim();
+    if(!name){ bad("bill.party"); return toast(t("enterParty")); }
+    const rows = d.rows.map(r=>({item:r.item.trim(), rate:num(r.rate), qty:num(r.qty)})).filter(r => r.rate*r.qty > 0);
+    if(!rows.length){ bad("bill.rows.0.rate"); return toast(t("enterItem")); }
+    snap(); blurField();
+    const p = ensureParty(name), transport = evalCalc(d.transport);
+    const tcalc = /[×+]/.test(d.transport) ? d.transport.replace(/[×+.]+$/,"") : "";   // keep "2×290" to show on the bill
+    rows.forEach(r => { if(r.item && !findItem(r.item)) S.items.push({id:nid(), name:r.item, rate:r.rate, unit:""}); });   // new items join the catalogue
+    const total = r2(rows.reduce((s,r)=> s + r2(r.rate*r.qty), 0) + transport);
+    if(d.id!=null){
+      const b = S.bills.find(x=>x.id===d.id); Object.assign(b, {pid:p.id, date:d.date, rows, transport, tcalc, total});
+      const e = S.entries.find(x=>x.billId===b.id); if(e) Object.assign(e, {pid:p.id, date:d.date, amt:total});
+      commit(); D.bill = blankBill(); render(); toast(t("billUpdated"), true);
+      return;
+    }
+    const b = {id:nid(), no:S.billSeq++, pid:p.id, date:d.date, rows, transport, tcalc, total};
+    S.bills.push(b);
+    S.entries.push({id:nid(), pid:p.id, type:"bill", amt:total, date:d.date, note:t("billNo", b.no), billId:b.id});
+    S.tipDone = true; UI.pid = p.id; commit();
+    D.bill = blankBill(); render();
+    toast(t("billSaved", money(total), p.name), true);
+    A.shareBill(b.id);
+  },
+  shareBill(id){ const b = S.bills.find(x=>x.id===+id); if(!b) return; const p = partyById(b.pid); openSheet({type:"share", title:t("billNo", b.no)+" · "+money(b.total), text:billText(b), doc:billDoc(b), phone:p&&p.phone}); },
+  askDelBill(id){ openSheet({type:"confirm", title:t("delBill"), sub:t("delBillSub"), yes:t("yesDelete"), danger:true, run(){ snap(); S.bills = S.bills.filter(b=>b.id!==+id); S.entries = S.entries.filter(e=>e.billId!==+id); commit(); D.bill = blankBill(); UI.sheet = null; render(); toast(t("billDeleted"), true); }}); },
+
+  /* ledger */
+  pickParty(){ D.q.pick = ""; openSheet({type:"pick", focus:"q.pick"}); },
+  pickNew(){ snap(); const p = ensureParty(D.q.pick); commit(); A.setParty(p.id); },
+  setParty(id){ UI.pid = +id; UI.sheet = null; UI.tab = "led"; UI.lastNew = null; D.led.amt = ""; D.led.note = ""; render(); focusField("led.amt"); },
+  addEntry(type){
+    const amt = r2(num(D.led.amt)), p = partyById(UI.pid);
+    if(!p) return A.pickParty();
+    if(!(amt > 0)){ bad("led.amt"); return toast(t("enterAmt")); }
+    snap();
+    const e = {id:nid(), pid:p.id, type, amt, date:D.led.date, note:D.led.note.trim()};
+    S.entries.push(e); commit();
+    D.led.amt = ""; D.led.note = ""; UI.lastNew = e.id; render(); focusField("led.amt");
+    toast(t(type==="paid"?"paidSaved":"billedSaved", money(amt)), true);
+  },
+  entryMenu(id){ openSheet({type:"emenu", id:+id}); },
+  editEntry(id){ const e = S.entries.find(x=>x.id===+id); if(!e || e.billId) return; D.edit = {amt:String(e.amt), note:e.note||"", date:e.date, type:e.type}; openSheet({type:"eedit", id:e.id, focus:"edit.amt"}); },
+  editType(k){ D.edit.type = k; const f = F && F.path; render(); if(f) focusField(f); },
+  saveEntry(){
+    const e = S.entries.find(x=>x.id===UI.sheet.id), amt = r2(num(D.edit.amt));
+    if(!e) return closeSheet();
+    if(!(amt > 0)){ bad("edit.amt"); return toast(t("enterAmt")); }
+    snap(); Object.assign(e, {amt, note:D.edit.note.trim(), date:D.edit.date, type:D.edit.type}); commit();
+    UI.lastNew = null; closeSheet(); toast(t("entryUpdated"), true);
+  },
+  delEntry(id){
+    const e = S.entries.find(x=>x.id===+id); if(!e) return;
+    if(e.billId) return A.askDelBill(e.billId);
+    snap(); S.entries = S.entries.filter(x=>x.id!==+id); commit(); UI.sheet = null; UI.lastNew = null; render(); toast(t("entryDeleted"), true);
+  },
+  undo(){ if(!undoSnap) return; S = JSON.parse(undoSnap); undoSnap = null; commit(); UI.lastNew = null; UI.sheet = null; render(); toast(t("undone")); },
+
+  /* dates */
+  pickDate(path){ blurField(); openSheet({type:"date", path, val:getPath(D,path), back:UI.sheet}); },
+  dateCancel(){ const s = UI.sheet; if(s && s.back){ UI.sheet = s.back; render(); } else closeSheet(); },
+  dateQuick(n){ const d = new Date(); d.setDate(d.getDate()-(+n)); setDate(iso(d)); },
+  dateDone(){
+    const idx = id => Math.round($("#"+id).scrollTop/44), ny = new Date().getFullYear();
+    const y = ny-2+Math.max(0,Math.min(3,idx("wy"))), m = Math.max(0,Math.min(11,idx("wm"))), dim = new Date(y, m+1, 0).getDate();
+    setDate(`${y}-${pad2(m+1)}-${pad2(Math.max(1,Math.min(dim, idx("wd")+1)))}`);
+  },
+
+  /* parties */
+  partyMenu(id){ openSheet({type:"pmenu", id:+id}); },
+  editParty(id){
+    const p = id ? partyById(+id) : null;
+    D.party = p ? {name:p.name, phone:p.phone||"", credit:p.credit==null?"":String(p.credit)} : {name:D.q.parties.trim(), phone:"", credit:""};
+    openSheet({type:"party", id:p?p.id:null, focus:"party.name"});
+  },
+  saveParty(){
+    const name = D.party.name.trim(), id = UI.sheet.id, ex = findParty(name);
+    if(!name){ return bad("party.name"); }
+    if(ex && ex.id!==id){ bad("party.name"); return toast(t("partyExists")); }
+    snap();
+    const vals = {name, phone:D.party.phone, credit:D.party.credit==="" ? null : num(D.party.credit)};
+    if(id) Object.assign(partyById(id), vals); else S.parties.push({id:nid(), ...vals});
+    commit(); D.q.parties = ""; closeSheet(); toast(t("partySaved"));
+  },
+  delParty(id){
+    if(S.entries.some(e=>e.pid===+id)) return toast(t("partyHasEntries"));
+    snap(); S.parties = S.parties.filter(p=>p.id!==+id); if(UI.pid===+id) UI.pid = null; commit(); closeSheet(); toast(t("partyDeleted"), true);
+  },
+  remind(id){
+    const p = partyById(+id), st = allStats().get(p.id);
+    if(st.bal <= 0) return toast(t("nothingDue", p.name));
+    const text = t("remindText", p.name, money(st.bal), S.biz.name||"Bahi", st.lastBill ? t("remindLast", fdate(st.lastBill,true)) : "");
+    openSheet({type:"share", title:t("remind"), text, phone:p.phone});
+  },
+  shareStmt(id){ const p = partyById(+id); openSheet({type:"share", title:t("statement")+" · "+p.name, text:stmtText(p.id), doc:stmtDoc(p.id), phone:p.phone}); },
+
+  /* share sheet buttons */
+  copyShare(){ copyText(UI.sheet.text); },
+  async saveImage(_, el){ busy(el,true); const c = drawDoc(UI.sheet.doc); await saveFile(UI.sheet.doc.name+".png", await canvasBlob(c,"image/png")); busy(el,false); },
+  async savePdf(_, el){
+    busy(el,true);
+    try{ const J = await loadJsPdf(), c = drawDoc(UI.sheet.doc); const pdf = new J({unit:"px", format:[c.width, c.height], orientation:c.width>c.height?"l":"p", hotfixes:["px_scaling"]});
+      pdf.addImage(c.toDataURL("image/jpeg",.92), "JPEG", 0, 0, c.width, c.height); await saveFile(UI.sheet.doc.name+".pdf", pdf.output("blob")); }
+    catch(e){ toast(t("pdfFail")); }
+    busy(el,false);
+  },
+
+  /* catalogue and report */
+  editItem(id){ const x = id ? S.items.find(i=>i.id===+id) : null; D.item = x ? {name:x.name, rate:String(x.rate), unit:x.unit||""} : {name:D.q.items.trim(), rate:"", unit:""}; openSheet({type:"item", id:x?x.id:null, focus:x?"item.rate":"item.name"}); },
+  saveItem(){
+    const name = D.item.name.trim(), id = UI.sheet.id, ex = findItem(name);
+    if(!name) return bad("item.name");
+    if(ex && ex.id!==id){ bad("item.name"); return toast(t("itemExists")); }
+    snap(); const vals = {name, rate:num(D.item.rate), unit:D.item.unit.trim()};
+    if(id) Object.assign(S.items.find(i=>i.id===id), vals); else S.items.push({id:nid(), ...vals});
+    commit(); D.q.items = ""; closeSheet(); toast(t("itemSaved"));
+  },
+  delItem(id){ snap(); S.items = S.items.filter(i=>i.id!==+id); commit(); closeSheet(); toast(t("itemDeleted"), true); },
+  shareRates(){ if(!S.items.length) return toast(t("noItems")); openSheet({type:"share", title:t("rateChart"), text:ratesText(), doc:ratesDoc()}); },
+  repPeriod(k){ UI.rep = k; render(); },
+  shareReport(){ openSheet({type:"share", title:t("report")+" · "+repLabel(), text:reportText(), doc:reportDoc()}); },
+
+  /* cash */
+  cashClear(){ D.cash = {}; F = null; render(); paintCash(); },
+
+  /* backup and export */
+  async backup(){ await saveNow(); const v = ls.get(LS_VAULT) || Cloud.vault; if(!v) return toast(t("storeFail")); if(await saveFile(`bahi-backup-${today()}.json`, JSON.stringify(v))){ S.lastBackup = today(); commit(); render(); toast(t("backupOk")); } },
+  nudgeOff(){ S.nudgeOff = today(); commit(); render(); },
+  pFilter(k){ UI.pf = k; render(); },
+  restorePick(){ $("#file").value = ""; $("#file").click(); },
+  restorePrev(){ restoreVault(ls.get(LS_PREV)); },
+  async install(){ if(!installEvt) return; installEvt.prompt(); try{ await installEvt.userChoice; }catch(e){} installEvt = null; render(); },
+  csv(kind){
+    const rows = kind==="items" ? [["Item","Qty","Amount","Bills"], ...itemReport(UI.rep).map(x=>[x.item,x.qty,x.amt,x.n])] : kind==="ledger"
+      ? [["Date","Party","Type","Amount","Note"], ...[...S.entries].sort((a,b)=>a.date<b.date?-1:a.date>b.date?1:a.id-b.id).map(e=>[e.date,(partyById(e.pid)||{}).name,e.type,e.amt,e.note])]
+      : [["Bill no","Date","Party","Item","Rate","Qty","Amount","Transport","Bill total"], ...S.bills.flatMap(b=>b.rows.map(r=>[b.no,b.date,(partyById(b.pid)||{}).name,r.item,r.rate,r.qty,r2(r.rate*r.qty),b.transport,b.total]))];
+    saveFile(`bahi-${kind==="items"?"item-sales-"+UI.rep:kind}-${today()}.csv`, "﻿"+rows.map(csvLine).join("\n"));
+  },
+
+  /* settings */
+  editBiz(){ D.set.biz = S.biz.name; openSheet({type:"text", title:t("bizName"), label:t("bizName"), path:"set.biz", kind:"text", focus:"set.biz", save(){ const v = D.set.biz.trim(); if(!v) return bad("set.biz"); S.biz.name = v; commit(); applyPrefs(); closeSheet(); }}); },
+  editCredit(){ D.set.credit = String(S.set.credit); openSheet({type:"text", title:t("defCredit"), label:t("creditDays"), path:"set.credit", kind:"int", focus:"set.credit", save(){ S.set.credit = num(D.set.credit); commit(); closeSheet(); }}); },
+  textSave(){ UI.sheet.save(); },
+  cycle(k){
+    const opts = {lang:["en","hi"], theme:["auto","light","dark"], lock:[1,2,5,10]}[k], i = opts.indexOf(S.set[k]);
+    S.set[k] = opts[(i+1)%opts.length]; commit(); applyPrefs(); render(); armIdle();
+  },
+  async changePin(){
+    PIN.err = ""; openSheet({type:"pin"});
+    const old = await askPin(t("oldPin"), ""); if(!UI.sheet || UI.sheet.type!=="pin") return;
+    try{ await decryptObj(await deriveKey(old, V.salt, V.iter), ls.get(LS_VAULT) || Cloud.vault); }catch(e){ closeSheet(); return toast(t("wrongPin")); }
+    for(;;){
+      const a = await askPin(t("newPin"), ""); if(!UI.sheet) return;
+      const b = await askPin(t("pinAgain"), ""); if(!UI.sheet) return;
+      if(a===b){ V = {salt:randB64(16), iter:KDF_ITER}; KEY = await deriveKey(a, V.salt, V.iter); S.rev = Date.now(); await saveNow(); break; }
+      pinFail(t("pinNoMatch"));
+    }
+    PIN.err = ""; closeSheet(); toast(t("pinChanged"));
+  },
+  pinCancel(){ PIN.done = null; PIN.err = ""; closeSheet(); },
+  forgot(){ openSheet({type:"forgot"}); },
+  askErase(){ openSheet({type:"confirm", title:t("eraseAsk"), sub:t("eraseSub"), yes:t("eraseYes"), danger:true, run:eraseAll}); },
+  confirmYes(){ UI.sheet.run(); }
+};
+function paintCashOnly(){ let tot = 0; NOTES.forEach(n => { const s = n*num(D.cash[n]); tot += s; const el = $("#cs"+n); if(el) el.textContent = s ? money(s) : ""; }); const e = $("#ctot"); if(e) e.textContent = money(tot); }
+function setDate(v){ const s = UI.sheet, path = s.path; setPath(D, path, v);
+  if(s.back){ UI.sheet = s.back; render(); return; }        // came from another sheet (edit entry): go back to it
+  UI.sheet = null; render(); if(path==="led.date" && partyById(UI.pid)) focusField("led.amt"); }
+function bad(path){ const el = fldEl(path); if(el){ el.classList.remove("bad"); void el.offsetWidth; el.classList.add("bad"); } focusField(path); }
+function busy(el,on){ if(el) el.classList.toggle("busy", on); }
+
+async function createVault(pin, book){
+  V = {salt:randB64(16), iter:KDF_ITER}; KEY = await deriveKey(pin, V.salt, V.iter); S = book; S.set.lang = LANG; ls.del(LS_TRY); await saveNow();
+}
+async function eraseAll(){
+  ls.del(LS_VAULT); ls.del(LS_TRY); ls.del(LS_UI); ls.del(LS_PREV);
+  try{ if(Cloud.col){ await Cloud.col.doc("meta").delete(); } }catch(e){}
+  Cloud.vault = null; Cloud.pending = null; S = null; KEY = null; V = null; PIN.done = null; PIN.err = "";
+  UI.sheet = null; UI.onb = 0; UI.mode = "onb"; UI.pid = null; D.bill = blankBill(); F = null; render();
+}
+/** Restore: read the chosen file, ask for its PIN, then make it the book. */
+async function restoreFile(file){
+  let v; try{ v = JSON.parse(await file.text()); }catch(e){ return toast(t("badFile")); }
+  restoreVault(v);
+}
+/** Restore any Bahi backup (from any version): ask its PIN, open it, bring it up to date. */
+function restoreVault(v){
+  if(!v || v.app!=="bahi" || !v.ct || !v.salt) return toast(t("badFile"));
+  const was = UI.mode;
+  const go = async () => {
+    PIN.err = ""; openSheet({type:"pin"});
+    const pin = await askPin(t("backupPin"), ""); if(!UI.sheet || UI.sheet.type!=="pin") return;
+    try{
+      const key = await deriveKey(pin, v.salt, v.iter), book = migrate(await decryptObj(key, v));
+      V = {salt:v.salt, iter:v.iter}; KEY = key; S = book; S.rev = Date.now(); ls.del(LS_TRY);
+      await saveNow(); PIN.err = ""; UI.sheet = null; UI.tab = "bill"; enterApp(); toast(t("restored"));
+    }catch(e){ PIN.err = ""; closeSheet(); toast(t("badPin")); }
+  };
+  if(was==="app") openSheet({type:"confirm", title:t("restoreAsk"), sub:t("restoreSub", fdate(iso(new Date(v.rev||Date.now())),true)), yes:t("restoreYes"), danger:true, run:go}); else go();
+}
+
+/* ---- Auto-lock when idle or when the app was in the background ---- */
+let idleTimer = 0, hiddenAt = 0;
+function armIdle(){ clearTimeout(idleTimer); if(UI.mode==="app" && S) idleTimer = setTimeout(lockNow, S.set.lock*60000); }
+document.addEventListener("visibilitychange", () => {
+  if(document.hidden){ hiddenAt = Date.now(); if(S) saveNow(); }
+  else if(UI.mode==="app" && S && hiddenAt && Date.now()-hiddenAt > S.set.lock*60000) lockNow();
+});
+
+/* ---- Events: one listener each, everything is delegated ---- */
+let rep = 0;
+document.addEventListener("pointerdown", e => {
+  armIdle();
+  const k = e.target.closest("[data-k]");
+  if(k || e.target.closest("[data-pin]")){ try{ navigator.vibrate && navigator.vibrate(8); }catch(_){} }
+  if(k){ e.preventDefault(); pressKey(k.dataset.k); if(k.dataset.k==="BS"){ clearInterval(rep); const t0 = Date.now(); rep = setInterval(()=>{ if(Date.now()-t0 > 400) typeKey("BS"); }, 70); } return; }
+  const pn = e.target.closest("[data-pin]"); if(pn){ e.preventDefault(); return pinKey(pn.dataset.pin); }
+  const sg = e.target.closest("[data-sg]"); if(sg){ e.preventDefault(); return pickSugg(+sg.dataset.sg); }
+});
+["pointerup","pointercancel","pointerleave"].forEach(ev => document.addEventListener(ev, () => clearInterval(rep)));
+document.addEventListener("click", e => {
+  const a = e.target.closest("[data-act]");
+  if(a){ const fn = A[a.dataset.act]; if(fn) fn(a.dataset.arg, a); return; }
+  const f = e.target.closest(".fld"); if(f) return focusField(f.dataset.path);
+  if(e.target.id==="sheet" && UI.sheet && UI.sheet.type!=="pin") return closeSheet();
+  if(F && e.target.closest("#main,#sheet") && !(UI.tab==="led" && UI.mode==="app" && !UI.sheet)) blurField();
+});
+document.addEventListener("keydown", e => {
+  armIdle();
+  if(e.ctrlKey || e.metaKey) return;
+  if(PIN.done && (UI.mode!=="app" || (UI.sheet && UI.sheet.type==="pin"))){ if(/^\d$/.test(e.key)) pinKey(e.key); else if(e.key==="Backspace") pinKey("BS"); return; }
+  if(e.altKey && UI.mode==="app" && /^[1-4]$/.test(e.key)){ e.preventDefault(); return A.tab(["bill","led","parties","more"][e.key-1]); }
+  if(!F){ if(e.key==="Escape" && UI.sheet) closeSheet(); return; }
+  if(e.key==="Enter" || e.key==="Tab"){ e.preventDefault(); return nextField(e.shiftKey); }
+  if(e.key==="Escape"){ e.preventDefault(); return UI.sheet ? closeSheet() : blurField(); }
+  if(e.key==="Backspace"){ e.preventDefault(); return typeKey("BS"); }
+  if(e.key==="Delete"){ e.preventDefault(); return typeKey("CLR"); }
+  if(F.path==="led.amt" && /^[pb]$/i.test(e.key)){ e.preventDefault(); return A.addEntry(e.key.toLowerCase()==="p"?"paid":"bill"); }
+  if(e.key.length===1){
+    e.preventDefault();
+    if(F.kind==="text") typeKey(/[a-z]/i.test(e.key) && !e.shiftKey ? caseFor(e.key) : e.key);
+    else if(F.kind==="calc" && /^[*xX+]$/.test(e.key)) typeKey(e.key==="+" ? "+" : "×");
+    else if(/[\d.]/.test(e.key)) typeKey(e.key);
+  }
+});
+$("#file").addEventListener("change", e => { const f = e.target.files[0]; if(f) restoreFile(f); });
+
+/* ---- Start-up ---- */
+function boot(){
+  const ui = ls.get(LS_UI); if(ui && ui.lang) LANG = ui.lang;
+  applyPrefs(); render(); cloudInit();
+  if(ls.get(LS_VAULT)) lockLoop();                    // a book on this device: go straight to the lock
+  else if(!window.claude || !window.claude.use) boot2();
+  // otherwise wait for sync to answer (10 s at most) in case the book lives on another device
+}
+function boot2(){
+  if(UI.mode!=="loading") return;
+  if(ls.get(LS_VAULT) || Cloud.vault) lockLoop(); else { UI.mode = "onb"; UI.onb = 0; render(); }
+}
+/* ---- Website extras: works offline and can be installed like an app (only on a real website) ---- */
+let installEvt = null;
+window.addEventListener("beforeinstallprompt", e => { e.preventDefault(); installEvt = e; if(UI.mode==="app" && UI.tab==="more") render(); });
+try{ if("serviceWorker" in navigator && location.protocol==="https:" && !window.claude) navigator.serviceWorker.register("sw.js").catch(()=>{}); }catch(e){}
+boot();
+</script>
+</body>
+</html>
