@@ -337,7 +337,7 @@ en:{
   gSect:"Google account", gSignIn:"Sign in with Google", gSignInSub:"Safe copy, and the same book on your other devices", gHave:"I already use Bahi: sign in with Google",
   gAs:"Signed in as {0}", gOut:"Sign out", gOutAsk:"Sign out of Google?", gOutSub:"This device keeps its data. It just stops saving to your Google account.",
   gFail:"Google sign-in did not work. Check your internet and try again.", gNoBook:"Signed in. Your book will be saved to your Google account.",
-  gSaved:"Signed in. Your book is now saved to your Google account.", gFound:"Your book was found. Enter its PIN.", gConnecting:"Connecting...",
+  gSaved:"Signed in. Your book is now saved to your Google account.", gFound:"Your book was found. Enter its PIN.", gConnecting:"Connecting...", gWillSave:"Your book will be saved to your Google account.",
   gTwoT:"Two different books", gTwoS:"Your Google account already has a Bahi book (last saved {0}). This device has a different one. Which one should be used? The other is kept under More as an earlier copy.",
   gBothT:"Changes on two devices", gBothS:"This device and your other device both have new entries since they last matched. Which one should be kept? The other is kept under More as an earlier copy.",
   gUseCloud:"Book from Google account", gUseLocal:"Book on this device", gKept:"Done. The other book is kept under More as an earlier copy.", installApp:"Install on this device", appUpdated:"Bahi updated to version {0}. Your data is safe.", noDue:"No party is overdue. Well done.", noMatch:"Nothing found.",
@@ -402,7 +402,7 @@ hi:{
   gSect:"गूगल खाता", gSignIn:"गूगल से साइन इन करें", gSignInSub:"सुरक्षित कॉपी, और दूसरे फोन/कंप्यूटर पर वही बही", gHave:"मैं पहले से बही चलाता हूं: गूगल से साइन इन करें",
   gAs:"{0} से साइन इन", gOut:"साइन आउट", gOutAsk:"गूगल से साइन आउट करें?", gOutSub:"इस फोन का डेटा रहेगा। बस गूगल खाते में सेव होना बंद होगा।",
   gFail:"गूगल साइन इन नहीं हुआ। इंटरनेट देखकर फिर कोशिश करें।", gNoBook:"साइन इन हो गया। आपकी बही गूगल खाते में सेव होगी।",
-  gSaved:"साइन इन हो गया। आपकी बही अब गूगल खाते में सेव है।", gFound:"आपकी बही मिल गई। उसका पिन डालें।", gConnecting:"जुड़ रहा है...",
+  gSaved:"साइन इन हो गया। आपकी बही अब गूगल खाते में सेव है।", gFound:"आपकी बही मिल गई। उसका पिन डालें।", gConnecting:"जुड़ रहा है...", gWillSave:"आपकी बही गूगल खाते में सेव होगी।",
   gTwoT:"दो अलग बही", gTwoS:"आपके गूगल खाते में पहले से एक बही है (आखिरी सेव {0})। इस फोन में दूसरी बही है। कौन सी चलानी है? दूसरी 'और' में पिछली कॉपी के रूप में रहेगी।",
   gBothT:"दो फोन पर बदलाव", gBothS:"इस फोन और दूसरे फोन, दोनों में पिछली बार मिलने के बाद नई एंट्री हैं। कौन सी रखनी है? दूसरी 'और' में पिछली कॉपी के रूप में रहेगी।",
   gUseCloud:"गूगल खाते वाली बही", gUseLocal:"इस फोन वाली बही", gKept:"हो गया। दूसरी बही 'और' में पिछली कॉपी के रूप में रखी है।", installApp:"इस फोन/कंप्यूटर पर इंस्टॉल करें", appUpdated:"बही वर्ज़न {0} में अपडेट हुआ। आपका डेटा सुरक्षित है।", noDue:"किसी पार्टी का पेमेंट देरी में नहीं है।", noMatch:"कुछ नहीं मिला।",
@@ -636,6 +636,7 @@ function commitQuiet(){ saveNow(); }
 function onCloudChecked(){
   if(UI.mode==="loading") boot2();
   else if(UI.mode==="app") reconcile();
+  else if(UI.mode==="onb" && FB.user){ if(Cloud.vault) lockLoop(); else render(); }   // back from Google's sign-in page
   if(UI.mode==="app" && UI.tab==="more") render();
 }
 /** When the app comes back to the screen, look for changes made on another device. */
@@ -936,7 +937,8 @@ function onbHTML(){
     <div class="chips" style="margin:8px 0"><button class="chip ${LANG==="en"?"on":""}" data-act="lang" data-arg="en">English</button><button class="chip ${LANG==="hi"?"on":""}" data-act="lang" data-arg="hi">हिंदी</button></div>
     <label class="lb">${t("yourBiz")}</label>${fld("onb.biz","text",t("bizPh"))}
     <button class="btn pri wide" style="margin-top:16px" data-act="onbNext" data-enter>${t("start")}</button>
-    ${fbAvailable() ? `<button class="btn wide mt2" data-act="gSignIn">${t("gHave")}</button>` : ""}
+    ${!fbAvailable() ? "" : FB.user ? `<div class="tip mt3"><div>${esc(t("gAs", FB.user.email||""))}<br>${t("gWillSave")}</div></div>`
+      : `<button class="btn wide mt2" data-act="gSignIn">${t("gHave")}</button>`}
     <button class="btn ghost wide" data-act="restorePick">${t("haveBackup")}</button></div></div>`;
   if(UI.onb===1) return `<div class="center">${steps}${pinHTML()}<p class="sm mut" style="max-width:320px">${t("pinWarn")}</p></div>`;
   return `<div class="center"><div class="onb">${steps}<h2>${t("firstParty")}</h2><p class="mut">${t("firstPartySub")}</p>
@@ -1485,7 +1487,7 @@ const A = {
       catch(e){ if(e && /popup-blocked|operation-not-supported/.test(e.code||"")){ await firebase.auth().signInWithRedirect(p); return; } throw e; }
       await cloudConnectFB(res.user); Cloud.checked = true;
       if(UI.mode==="onb"){
-        if(Cloud.vault){ PIN.err = t("gFound"); lockLoop(); } else toast(t("gNoBook"));
+        if(Cloud.vault){ PIN.err = t("gFound"); lockLoop(); } else { render(); toast(t("gNoBook")); }
       } else if(UI.mode==="app"){
         if(!Cloud.vault){ pushNow(); toast(t("gSaved")); } else { heldPin = null; reconcile(); }
         render();
