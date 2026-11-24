@@ -333,11 +333,18 @@ en:{
   delEntry:"Delete this entry?", delBill:"Delete this bill?", delBillSub:"It will also be removed from the party ledger.", openBill:"Open bill", yesDelete:"Yes, delete",
   today:"Today", yesterday:"Yesterday", opening_bal:"Opening balance", total:"Total", showKeys:"Show keypad", hideKeys:"Hide keypad", typing:"Type on your keyboard. Enter = next.",
   remindText:"Namaste {0} ji,\nA payment of {1} is pending with {2}.{3}\nPlease pay at the earliest. Thank you.", remindLast:" Last bill: {0}.",
-  nothingDue:"{0} has nothing pending.", items:"{0} items", item1:"1 item", version:"Version", prevData:"Data from before the last update", installApp:"Install on this device", appUpdated:"Bahi updated to version {0}. Your data is safe.", noDue:"No party is overdue. Well done.", noMatch:"Nothing found.",
+  nothingDue:"{0} has nothing pending.", items:"{0} items", item1:"1 item", version:"Version", prevData:"Earlier copy of your data",
+  gSect:"Google account", gSignIn:"Sign in with Google", gSignInSub:"Safe copy, and the same book on your other devices", gHave:"I already use Bahi: sign in with Google",
+  gAs:"Signed in as {0}", gOut:"Sign out", gOutAsk:"Sign out of Google?", gOutSub:"This device keeps its data. It just stops saving to your Google account.",
+  gFail:"Google sign-in did not work. Check your internet and try again.", gNoBook:"Signed in. Your book will be saved to your Google account.",
+  gSaved:"Signed in. Your book is now saved to your Google account.", gFound:"Your book was found. Enter its PIN.", gConnecting:"Connecting...",
+  gTwoT:"Two different books", gTwoS:"Your Google account already has a Bahi book (last saved {0}). This device has a different one. Which one should be used? The other is kept under More as an earlier copy.",
+  gBothT:"Changes on two devices", gBothS:"This device and your other device both have new entries since they last matched. Which one should be kept? The other is kept under More as an earlier copy.",
+  gUseCloud:"Book from Google account", gUseLocal:"Book on this device", gKept:"Done. The other book is kept under More as an earlier copy.", installApp:"Install on this device", appUpdated:"Bahi updated to version {0}. Your data is safe.", noDue:"No party is overdue. Well done.", noMatch:"Nothing found.",
   editEntry:"Edit entry", entryUpdated:"Entry updated.", lastBackup:"Last backup", backupNudge:"Last backup: {0}. Save one now so your data stays safe.",
   fy:"FY {0}", all:"All", overdueF:"Overdue", quick:["Cash","UPI","Cheque","Bank"],
   safe1:"Your data is scrambled with AES-256 using a key made from your PIN. Without the PIN it is unreadable.",
-  safe2:"The same scrambled copy is kept in sync storage for your account. The server never sees your PIN or readable data.",
+  safe2:"If you sign in with Google, the same locked copy is kept in your Google account's space. Nobody, not even the app maker, can read it without your PIN.",
   safe3:"The app locks itself when idle. Wrong PIN tries are slowed down.",
   safe4:"Not protected: someone who knows your PIN, a phone with a virus or screen recorder, and messages after you share them on WhatsApp.",
   safe5:"A 6-digit PIN stops normal people. A skilled attacker who copies your backup file could guess it in days, so keep backup files private.",
@@ -391,11 +398,18 @@ hi:{
   delEntry:"यह एंट्री हटाएं?", delBill:"यह बिल हटाएं?", delBillSub:"यह पार्टी के खाते से भी हट जाएगा।", openBill:"बिल खोलें", yesDelete:"हां, हटाएं",
   today:"आज", yesterday:"कल", opening_bal:"पिछला बाकी", total:"कुल", showKeys:"कीपैड दिखाएं", hideKeys:"कीपैड छुपाएं", typing:"कीबोर्ड से लिखें। Enter = आगे।",
   remindText:"नमस्ते {0} जी,\n{2} में आपका {1} बाकी है।{3}\nकृपया जल्दी पेमेंट करें। धन्यवाद।", remindLast:" पिछला बिल: {0}।",
-  nothingDue:"{0} का कुछ बाकी नहीं है।", items:"{0} सामान", item1:"1 सामान", version:"वर्ज़न", prevData:"पिछले अपडेट से पहले का डेटा", installApp:"इस फोन/कंप्यूटर पर इंस्टॉल करें", appUpdated:"बही वर्ज़न {0} में अपडेट हुआ। आपका डेटा सुरक्षित है।", noDue:"किसी पार्टी का पेमेंट देरी में नहीं है।", noMatch:"कुछ नहीं मिला।",
+  nothingDue:"{0} का कुछ बाकी नहीं है।", items:"{0} सामान", item1:"1 सामान", version:"वर्ज़न", prevData:"आपके डेटा की पिछली कॉपी",
+  gSect:"गूगल खाता", gSignIn:"गूगल से साइन इन करें", gSignInSub:"सुरक्षित कॉपी, और दूसरे फोन/कंप्यूटर पर वही बही", gHave:"मैं पहले से बही चलाता हूं: गूगल से साइन इन करें",
+  gAs:"{0} से साइन इन", gOut:"साइन आउट", gOutAsk:"गूगल से साइन आउट करें?", gOutSub:"इस फोन का डेटा रहेगा। बस गूगल खाते में सेव होना बंद होगा।",
+  gFail:"गूगल साइन इन नहीं हुआ। इंटरनेट देखकर फिर कोशिश करें।", gNoBook:"साइन इन हो गया। आपकी बही गूगल खाते में सेव होगी।",
+  gSaved:"साइन इन हो गया। आपकी बही अब गूगल खाते में सेव है।", gFound:"आपकी बही मिल गई। उसका पिन डालें।", gConnecting:"जुड़ रहा है...",
+  gTwoT:"दो अलग बही", gTwoS:"आपके गूगल खाते में पहले से एक बही है (आखिरी सेव {0})। इस फोन में दूसरी बही है। कौन सी चलानी है? दूसरी 'और' में पिछली कॉपी के रूप में रहेगी।",
+  gBothT:"दो फोन पर बदलाव", gBothS:"इस फोन और दूसरे फोन, दोनों में पिछली बार मिलने के बाद नई एंट्री हैं। कौन सी रखनी है? दूसरी 'और' में पिछली कॉपी के रूप में रहेगी।",
+  gUseCloud:"गूगल खाते वाली बही", gUseLocal:"इस फोन वाली बही", gKept:"हो गया। दूसरी बही 'और' में पिछली कॉपी के रूप में रखी है।", installApp:"इस फोन/कंप्यूटर पर इंस्टॉल करें", appUpdated:"बही वर्ज़न {0} में अपडेट हुआ। आपका डेटा सुरक्षित है।", noDue:"किसी पार्टी का पेमेंट देरी में नहीं है।", noMatch:"कुछ नहीं मिला।",
   editEntry:"एंट्री बदलें", entryUpdated:"एंट्री बदली गई।", lastBackup:"पिछला बैकअप", backupNudge:"पिछला बैकअप: {0}। डेटा सुरक्षित रखने के लिए अभी बैकअप लें।",
   fy:"वित्त वर्ष {0}", all:"सभी", overdueF:"देरी वाले", quick:["नकद","UPI","चेक","बैंक"],
   safe1:"आपका डेटा पिन से बनी चाबी से AES-256 में बंद है। पिन के बिना पढ़ा नहीं जा सकता।",
-  safe2:"वही बंद कॉपी आपके खाते के सिंक में रहती है। सर्वर को आपका पिन या खुला डेटा कभी नहीं दिखता।",
+  safe2:"गूगल से साइन इन करने पर वही बंद कॉपी आपके गूगल खाते की जगह में रहती है। आपके पिन के बिना कोई नहीं पढ़ सकता, ऐप बनाने वाला भी नहीं।",
   safe3:"खाली रहने पर ऐप अपने आप लॉक होता है। गलत पिन पर रुकना पड़ता है।",
   safe4:"सुरक्षित नहीं: जिसे आपका पिन पता है, वायरस या स्क्रीन रिकॉर्डर वाला फोन, और व्हाट्सऐप पर भेजे गए मैसेज।",
   safe5:"6 अंक का पिन आम लोगों को रोकता है। जानकार हमलावर बैकअप फाइल मिलने पर कुछ दिनों में पिन खोज सकता है, इसलिए बैकअप फाइल किसी को न दें।",
@@ -488,7 +502,7 @@ async function saveNow(){
   saving = true;
   try{
     const enc = await encryptObj(KEY, S);
-    const vault = {app:"bahi", v:1, salt:V.salt, iter:V.iter, iv:enc.iv, ct:enc.ct, rev:S.rev};
+    const vault = {app:"bahi", v:1, salt:V.salt, iter:V.iter, iv:enc.iv, ct:enc.ct, rev:S.rev, bookId:S.bookId};
     if(!ls.set(LS_VAULT, vault) && !Cloud.db) toast(t("storeFail"));
     Cloud.pending = vault; cloudPushSoon();
   }catch(e){ toast(t("storeFail")); }
@@ -499,24 +513,57 @@ async function saveNow(){
 /* ---- Sync (optional). Encrypted vault is split in chunks under
         data/users/<id>/ which is private to the signed-in person. ---- */
 const Cloud = {db:null, col:null, vault:null, checked:false, pending:null, pushing:false, timer:0, slot:"a", status:"saved"};
-const CHUNK = 150000;
+const CHUNK = 150000, LS_SYNCED = "bahi.synced", LS_G = "bahi.g";
+/* Google sign-in (only on the website). Uses the Nakal Firebase project; each person's
+   locked book is stored at bahi_users/<their id>/vault and only they can reach it. */
+const FB_CONF = {apiKey:"AIzaSyDkPlNia17RW8_xpMvp9nosAQOgk594q3Y", authDomain:"nakal-cdb66.firebaseapp.com", projectId:"nakal-cdb66",
+  storageBucket:"nakal-cdb66.firebasestorage.app", messagingSenderId:"416887078075", appId:"1:416887078075:web:d76e0d6fb64226a3acfd9e"};
+const FB = {loading:null, user:null};
+const fbAvailable = () => location.protocol==="https:" && !window.claude;
+function loadScript(src){ return new Promise((res,rej)=>{ const el = document.createElement("script"); el.src = src; el.onload = res; el.onerror = rej; document.head.appendChild(el); }); }
+function fbLoad(){
+  if(!FB.loading) FB.loading = (async()=>{
+    for(const f of ["firebase-app-compat.js","firebase-auth-compat.js","firebase-firestore-compat.js"]) await loadScript("vendor/"+f);
+    if(!firebase.apps.length) firebase.initializeApp(FB_CONF);
+  })().catch(e => { FB.loading = null; throw e; });
+  return FB.loading;
+}
+/** Read the stored book (in chunks) from a sync collection. */
+async function cloudLoad(col){
+  const meta = await col.doc("meta").get();
+  Cloud.vault = null;
+  if(meta.exists){
+    const m = meta.data(); let ct = "";
+    for(let i=0;i<m.n;i++){ const c = await col.doc(m.slot+i).get(); if(!c.exists){ ct = null; break; } ct += c.data().d; }
+    if(ct !== null){ Cloud.vault = {app:"bahi", v:1, salt:m.salt, iter:m.iter, iv:m.iv, ct, rev:m.rev, bookId:m.bookId}; Cloud.slot = m.slot; }
+  }
+}
+async function cloudConnectFB(user){
+  FB.user = user;
+  const col = firebase.firestore().collection("bahi_users").doc(user.uid).collection("vault");
+  await cloudLoad(col);
+  Cloud.db = "google"; Cloud.col = col;
+}
 async function cloudInit(){
   try{
-    if(!window.claude || !window.claude.use) return;
     const giveUp = new Promise(r => setTimeout(()=>r("late"), 10000));
-    const work = (async()=>{
-      const [db, user] = await Promise.all([window.claude.use("db"), window.claude.use("user")]);
-      if(!db || !user) return;
-      const uid = await user.id(); if(!uid) return;
-      const col = db.collection("data/users/"+uid);
-      const meta = await col.doc("meta").get();
-      if(meta.exists){
-        const m = meta.data(); let ct = "";
-        for(let i=0;i<m.n;i++){ const c = await col.doc(m.slot+i).get(); if(!c.exists){ ct = null; break; } ct += c.data().d; }
-        if(ct !== null){ Cloud.vault = {app:"bahi", v:1, salt:m.salt, iter:m.iter, iv:m.iv, ct, rev:m.rev}; Cloud.slot = m.slot; }
-      }
-      Cloud.db = db; Cloud.col = col;
-    })();
+    let work;
+    if(window.claude && window.claude.use){
+      work = (async()=>{
+        const [db, user] = await Promise.all([window.claude.use("db"), window.claude.use("user")]);
+        if(!db || !user) return;
+        const uid = await user.id(); if(!uid) return;
+        const col = db.collection("data/users/"+uid);
+        await cloudLoad(col);
+        Cloud.db = db; Cloud.col = col;
+      })();
+    } else if(fbAvailable() && ls.get(LS_G)){
+      work = (async()=>{
+        await fbLoad();
+        const user = await new Promise(r => { const un = firebase.auth().onAuthStateChanged(u => { un(); r(u); }); });
+        if(user) await cloudConnectFB(user); else ls.del(LS_G);
+      })();
+    } else return;
     await Promise.race([work, giveUp]);
   }catch(e){ /* sync is optional: stay on device storage */ }
   finally{ Cloud.checked = true; onCloudChecked(); }
@@ -531,35 +578,70 @@ async function cloudPush(){
     // Write into the slot not in use, then switch "meta" to it, so a half-finished upload never breaks the stored copy.
     const slot = Cloud.slot==="a" ? "b" : "a", n = Math.ceil(v.ct.length/CHUNK);
     for(let i=0;i<n;i++) await Cloud.col.doc(slot+i).set({d:v.ct.slice(i*CHUNK,(i+1)*CHUNK)});
-    await Cloud.col.doc("meta").set({salt:v.salt, iter:v.iter, iv:v.iv, rev:v.rev, n, slot});
-    Cloud.slot = slot; Cloud.vault = v; setSync("synced");
+    await Cloud.col.doc("meta").set({salt:v.salt, iter:v.iter, iv:v.iv, rev:v.rev, n, slot, bookId:v.bookId||""});
+    Cloud.slot = slot; Cloud.vault = v; ls.set(LS_SYNCED, v.rev); setSync("synced");
   }catch(e){ if(!Cloud.pending) Cloud.pending = v; setSync("saved"); }
   Cloud.pushing = false;
   if(Cloud.pending) cloudPushSoon();
 }
 function setSync(st){ Cloud.status = st; const el = $("#sync"); if(!el) return; el.className = "sync"+(st==="paused"?" warn":""); $("span",el).textContent = t(st); }
 
-/** After unlocking (and when sync answers): take the newer of device and sync copies. */
+/** After unlocking (and when sync answers): bring this device and the stored copy together.
+    "base" is the version both last agreed on. If only one side changed, that side wins.
+    If both changed, or they are two different books, the person chooses and the other is kept as an earlier copy. */
 let heldPin = null;   // kept in memory only until sync has answered once after an unlock
 async function reconcile(){
   if(!S || !KEY || !Cloud.checked) return;
-  const pin = heldPin; heldPin = null;
-  if(!Cloud.db){ setSync("saved"); return; }
+  if(!Cloud.db){ heldPin = null; setSync("saved"); return; }
   const cv = Cloud.vault;
-  if(!cv || cv.rev < (S.rev||0)){ setSync("saved"); commitQuiet(); return; }
-  if(cv.rev === S.rev){ setSync("synced"); return; }
+  if(!cv){ heldPin = null; pushNow(); return; }
+  if(cv.bookId && S.bookId && cv.bookId !== S.bookId){ return askWhich("two"); }
+  if(cv.rev === S.rev){ heldPin = null; ls.set(LS_SYNCED, cv.rev); setSync("synced"); return; }
+  const base = ls.get(LS_SYNCED) || 0, localNew = S.rev > base, cloudNew = cv.rev > base;
+  if(localNew && cloudNew && base) return askWhich("both");
+  if(cv.rev < S.rev){ heldPin = null; pushNow(); return; }
+  await takeCloud();
+}
+function pushNow(){ saveNow().then(()=>{ const v = ls.get(LS_VAULT); if(v){ Cloud.pending = v; cloudPush(); } }); }
+async function takeCloud(quiet){
+  const cv = Cloud.vault, pin = heldPin; heldPin = null;
   try{
-    let key = cv.salt===V.salt ? KEY : (pin ? await deriveKey(pin, cv.salt, cv.iter) : null);
+    const key = cv.salt===V.salt ? KEY : (pin ? await deriveKey(pin, cv.salt, cv.iter) : null);
     if(!key) throw 0;
     const st = await decryptObj(key, cv);
     S = migrate(st); V = {salt:cv.salt, iter:cv.iter}; KEY = key;
-    ls.set(LS_VAULT, cv); applyPrefs(); setSync("synced"); render();
-  }catch(e){ setSync("paused"); toast(t("syncOther")); }
+    ls.set(LS_VAULT, cv); ls.set(LS_SYNCED, cv.rev); applyPrefs(); setSync("synced"); render();
+    return true;
+  }catch(e){ if(!quiet){ setSync("paused"); toast(t("syncOther")); } return false; }
+}
+function askWhich(kind){
+  const cv = Cloud.vault;
+  openSheet({type:"gchoice", kind, title:t(kind==="two"?"gTwoT":"gBothT"), sub:t(kind==="two"?"gTwoS":"gBothS", fdate(iso(new Date(cv.rev)),true))});
+}
+/** Keep the Google account's book on this device; this device's book becomes the earlier copy. */
+async function chooseCloud(){
+  await saveNow(); const mine = ls.get(LS_VAULT);
+  if(mine) ls.set(LS_PREV, {...mine, fromVer:"device", savedAt:Date.now()});
+  UI.sheet = null;
+  if(await takeCloud(true)){ toast(t("gKept")); return; }               // same PIN: open it straight away
+  ls.set(LS_VAULT, Cloud.vault); ls.set(LS_SYNCED, Cloud.vault.rev);       // different PIN: open it with its own PIN
+  S = null; KEY = null; heldPin = null; PIN.err = t("gFound"); lockLoop();
+}
+/** Keep this device's book; the Google account's book becomes the earlier copy. */
+function chooseLocal(){
+  ls.set(LS_PREV, {...Cloud.vault, fromVer:"google", savedAt:Date.now()});
+  heldPin = null; S.rev = Date.now(); UI.sheet = null; render(); pushNow(); toast(t("gKept"));
 }
 function commitQuiet(){ saveNow(); }
 function onCloudChecked(){
   if(UI.mode==="loading") boot2();
   else if(UI.mode==="app") reconcile();
+  if(UI.mode==="app" && UI.tab==="more") render();
+}
+/** When the app comes back to the screen, look for changes made on another device. */
+async function cloudRefresh(){
+  if(!Cloud.db || !Cloud.col || UI.mode!=="app" || UI.sheet) return;
+  try{ const before = Cloud.vault && Cloud.vault.rev; await cloudLoad(Cloud.col); if(Cloud.vault && Cloud.vault.rev !== before) reconcile(); }catch(e){}
 }
 
 /* ---------------------------------------------------------------
@@ -568,14 +650,14 @@ function onCloudChecked(){
    entry: {id, pid, type:"paid"|"bill", amt, date, note, billId?}
    bill:  {id, no, pid, date, rows:[{item,rate,qty}], transport, total}
    --------------------------------------------------------------- */
-function newBook(name){ return {biz:{name:name||""}, set:{lang:LANG, theme:"auto", credit:30, lock:2}, parties:[], entries:[], bills:[], items:[], cash:{}, seq:1, billSeq:1, tipDone:false, rev:Date.now()}; }
+function newBook(name){ return {bookId:randB64(9), appVer:APP_VER, biz:{name:name||""}, set:{lang:LANG, theme:"auto", credit:30, lock:2}, parties:[], entries:[], bills:[], items:[], cash:{}, seq:1, billSeq:1, tipDone:false, rev:Date.now()}; }
 function migrate(b){
   if(b.items===undefined){            // older book: start the catalogue from items already billed (latest rate)
     const seen = new Map();
     for(let i=(b.bills||[]).length-1;i>=0;i--) for(const r of b.bills[i].rows){ const k = r.item.toLowerCase(); if(r.item && !seen.has(k)) seen.set(k, {id:b.seq++, name:r.item, rate:r.rate, unit:""}); }
     b.items = [...seen.values()];
   }
-  const d = newBook(""); for(const k in d) if(b[k]===undefined) b[k] = d[k]; for(const k in d.set) if(b.set[k]===undefined) b.set[k] = d.set[k]; return b; }
+  const d = newBook(""); delete d.appVer; for(const k in d) if(b[k]===undefined) b[k] = d[k]; for(const k in d.set) if(b.set[k]===undefined) b.set[k] = d.set[k]; return b; }
 const nid = () => S.seq++;
 const partyById = id => S.parties.find(p => p.id===id);
 const findParty = name => { const n = String(name).trim().toLowerCase(); return S.parties.find(p => p.name.toLowerCase()===n); };
@@ -854,6 +936,7 @@ function onbHTML(){
     <div class="chips" style="margin:8px 0"><button class="chip ${LANG==="en"?"on":""}" data-act="lang" data-arg="en">English</button><button class="chip ${LANG==="hi"?"on":""}" data-act="lang" data-arg="hi">हिंदी</button></div>
     <label class="lb">${t("yourBiz")}</label>${fld("onb.biz","text",t("bizPh"))}
     <button class="btn pri wide" style="margin-top:16px" data-act="onbNext" data-enter>${t("start")}</button>
+    ${fbAvailable() ? `<button class="btn wide mt2" data-act="gSignIn">${t("gHave")}</button>` : ""}
     <button class="btn ghost wide" data-act="restorePick">${t("haveBackup")}</button></div></div>`;
   if(UI.onb===1) return `<div class="center">${steps}${pinHTML()}<p class="sm mut" style="max-width:320px">${t("pinWarn")}</p></div>`;
   return `<div class="center"><div class="onb">${steps}<h2>${t("firstParty")}</h2><p class="mut">${t("firstPartySub")}</p>
@@ -1019,6 +1102,10 @@ function moreHTML(){
   const th = {auto:t("auto"), light:t("light"), dark:t("dark")};
   return `<h2>${t("more")}</h2>
     <div class="card menu"><button data-act="sub" data-arg="report">${t("report")}<span class="v">›</span></button><button data-act="sub" data-arg="items">${t("catalogue")}<span class="v">${S.items.length} ›</span></button><button data-act="sub" data-arg="cash">${t("cash")}<span class="v">›</span></button><button data-act="sub" data-arg="bills">${t("allBills")}<span class="v">${S.bills.length} ›</span></button></div>
+    ${fbAvailable() ? `<div class="sect">${t("gSect")}</div><div class="card menu">${FB.user
+        ? `<div class="row" style="padding:12px 16px;min-height:52px"><span class="sp">${esc(t("gAs", FB.user.email||""))}</span></div><button data-act="gSignOut">${t("gOut")}</button>`
+        : (ls.get(LS_G) && !Cloud.checked) ? `<div class="row mut" style="padding:12px 16px;min-height:52px">${t("gConnecting")}</div>`
+        : `<button data-act="gSignIn">${t("gSignIn")}<span class="v">${t("gSignInSub")}</span></button>`}</div>` : ""}
     <div class="sect">${t("dataSect")}</div>
     <div class="card menu"><button data-act="backup">${t("backup")}<span class="v">${S.lastBackup ? fdate(S.lastBackup) : t("never")}</span></button><button data-act="restorePick">${t("restore")}</button>${(()=>{ const pv = ls.get(LS_PREV); return pv ? `<button data-act="restorePrev">${t("prevData")}<span class="v">${fdate(iso(new Date(pv.savedAt||pv.rev)))}</span></button>` : ""; })()}<button data-act="csv" data-arg="ledger">${t("csvLedger")}</button><button data-act="csv" data-arg="bills">${t("csvBills")}</button></div>
     <div class="sect">${t("settings")}</div>
@@ -1090,6 +1177,8 @@ function renderSheet(){
       <div class="acts">${e.billId?`<button class="btn" data-act="openBill" data-arg="${e.billId}">${t("openBill")}</button>`:`<button class="btn" data-act="editEntry" data-arg="${e.id}">${t("edit")}</button>`}<button class="btn red" data-act="delEntry" data-arg="${e.id}">${t("del")}</button></div>
       <button class="btn ghost wide" data-act="closeSheet">${t("cancel")}</button>`;
   }
+  else if(s.type==="gchoice") h = `<h3>${esc(s.title)}</h3><p class="mut">${esc(s.sub)}</p>
+      <button class="btn pri wide mt3" data-act="gUseCloud">${t("gUseCloud")}</button><button class="btn wide mt2" data-act="gUseLocal">${t("gUseLocal")}</button>`;
   else if(s.type==="eedit"){
     const e = S.entries.find(x=>x.id===s.id), p = partyById(e.pid), ty = D.edit.type;
     // compact so Save stays above the keypad on small phones
@@ -1385,6 +1474,31 @@ const A = {
   pFilter(k){ UI.pf = k; render(); },
   restorePick(){ $("#file").value = ""; $("#file").click(); },
   restorePrev(){ restoreVault(ls.get(LS_PREV)); },
+  async gSignIn(_, el){
+    busy(el, true);
+    try{
+      await fbLoad();
+      const p = new firebase.auth.GoogleAuthProvider(); p.setCustomParameters({prompt:"select_account"});
+      ls.set(LS_G, 1);
+      let res;
+      try{ res = await firebase.auth().signInWithPopup(p); }
+      catch(e){ if(e && /popup-blocked|operation-not-supported/.test(e.code||"")){ await firebase.auth().signInWithRedirect(p); return; } throw e; }
+      await cloudConnectFB(res.user); Cloud.checked = true;
+      if(UI.mode==="onb"){
+        if(Cloud.vault){ PIN.err = t("gFound"); lockLoop(); } else toast(t("gNoBook"));
+      } else if(UI.mode==="app"){
+        if(!Cloud.vault){ pushNow(); toast(t("gSaved")); } else { heldPin = null; reconcile(); }
+        render();
+      }
+    }catch(e){ if(!FB.user) ls.del(LS_G); if(!(e && /popup-closed|cancelled-popup/.test(e.code||""))) toast(t("gFail")); }
+    busy(el, false);
+  },
+  gSignOut(){ openSheet({type:"confirm", title:t("gOutAsk"), sub:t("gOutSub"), yes:t("gOut"), run: async () => {
+    try{ await firebase.auth().signOut(); }catch(e){}
+    ls.del(LS_G); ls.del(LS_SYNCED); FB.user = null; Cloud.db = null; Cloud.col = null; Cloud.vault = null; setSync("saved"); UI.sheet = null; render();
+  }}); },
+  gUseCloud(){ chooseCloud(); },
+  gUseLocal(){ chooseLocal(); },
   async install(){ if(!installEvt) return; installEvt.prompt(); try{ await installEvt.userChoice; }catch(e){} installEvt = null; render(); },
   csv(kind){
     const rows = kind==="items" ? [["Item","Qty","Amount","Bills"], ...itemReport(UI.rep).map(x=>[x.item,x.qty,x.amt,x.n])] : kind==="ledger"
@@ -1429,8 +1543,10 @@ async function createVault(pin, book){
   V = {salt:randB64(16), iter:KDF_ITER}; KEY = await deriveKey(pin, V.salt, V.iter); S = book; S.set.lang = LANG; ls.del(LS_TRY); await saveNow();
 }
 async function eraseAll(){
-  ls.del(LS_VAULT); ls.del(LS_TRY); ls.del(LS_UI); ls.del(LS_PREV);
-  try{ if(Cloud.col){ await Cloud.col.doc("meta").delete(); } }catch(e){}
+  const unlocked = !!S;            // from the lock screen (forgot PIN) only this device is cleared
+  ls.del(LS_VAULT); ls.del(LS_TRY); ls.del(LS_UI); ls.del(LS_PREV); ls.del(LS_SYNCED);
+  try{ if(Cloud.col && unlocked){ await Cloud.col.doc("meta").delete(); } }catch(e){}
+  if(Cloud.db==="google"){ try{ await firebase.auth().signOut(); }catch(e){} ls.del(LS_G); FB.user = null; Cloud.db = null; Cloud.col = null; }
   Cloud.vault = null; Cloud.pending = null; S = null; KEY = null; V = null; PIN.done = null; PIN.err = "";
   UI.sheet = null; UI.onb = 0; UI.mode = "onb"; UI.pid = null; D.bill = blankBill(); F = null; render();
 }
@@ -1461,6 +1577,7 @@ function armIdle(){ clearTimeout(idleTimer); if(UI.mode==="app" && S) idleTimer 
 document.addEventListener("visibilitychange", () => {
   if(document.hidden){ hiddenAt = Date.now(); if(S) saveNow(); }
   else if(UI.mode==="app" && S && hiddenAt && Date.now()-hiddenAt > S.set.lock*60000) lockNow();
+  else if(!document.hidden) cloudRefresh();
 });
 
 /* ---- Events: one listener each, everything is delegated ---- */
@@ -1478,7 +1595,7 @@ document.addEventListener("click", e => {
   const a = e.target.closest("[data-act]");
   if(a){ const fn = A[a.dataset.act]; if(fn) fn(a.dataset.arg, a); return; }
   const f = e.target.closest(".fld"); if(f) return focusField(f.dataset.path);
-  if(e.target.id==="sheet" && UI.sheet && UI.sheet.type!=="pin") return closeSheet();
+  if(e.target.id==="sheet" && UI.sheet && UI.sheet.type!=="pin" && UI.sheet.type!=="gchoice") return closeSheet();
   if(F && e.target.closest("#main,#sheet") && !(UI.tab==="led" && UI.mode==="app" && !UI.sheet)) blurField();
 });
 document.addEventListener("keydown", e => {
@@ -1503,10 +1620,11 @@ $("#file").addEventListener("change", e => { const f = e.target.files[0]; if(f) 
 
 /* ---- Start-up ---- */
 function boot(){
+  if(fbAvailable() && !ls.get(LS_G)) setTimeout(()=>{ fbLoad().catch(()=>{}); }, 1500);   // ready for a quick sign-in later
   const ui = ls.get(LS_UI); if(ui && ui.lang) LANG = ui.lang;
   applyPrefs(); render(); cloudInit();
   if(ls.get(LS_VAULT)) lockLoop();                    // a book on this device: go straight to the lock
-  else if(!window.claude || !window.claude.use) boot2();
+  else if((!window.claude || !window.claude.use) && !(fbAvailable() && ls.get(LS_G))) boot2();
   // otherwise wait for sync to answer (10 s at most) in case the book lives on another device
 }
 function boot2(){
