@@ -65,7 +65,7 @@
       make: function () {
         askSecret(t('backup_pass'), t('backup_pass_hint'), 'pass', 40, t('backup_make'), function (pw, b) {
           U.busy(b, NK.sec.backupMake(pw, { made: Date.now(), recs: S.exportAll() })).then(function (text) {
-            U.closeSheet(); U.toast(t('backup_done'));
+            U.closeSheet();
             return NK.share.file(new Blob([text], { type: 'application/octet-stream' }), 'Backup-' + NK.fmtDate(NK.today()).replace(/ /g, '-') + '.nkbackup');
           });
         });

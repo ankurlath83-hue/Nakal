@@ -92,6 +92,9 @@
     e_net: ['No internet. Your book is safe on this phone. Try again later.', 'नेट नहीं है। आपका खाता इस फ़ोन में सुरक्षित है। बाद में फिर करो।'], e_many: ['Too many tries. Wait a few minutes and try again.', 'बहुत बार कोशिश हुई। कुछ मिनट रुक कर फिर करो।'],
     e_denied: ['Not allowed. Ask the owner to check your access.', 'इजाज़त नहीं है। मालिक से अपनी पहुँच देखने को कहो।'], e_other: ['That did not work. Try again.', 'यह नहीं हुआ। फिर से करो।'],
 
+    file_saved: ['Saved on this phone: Documents > Nakal > {name}', 'इस फ़ोन में सेव हुआ: Documents > Nakal > {name}'], file_dl: ['Saved in Downloads: {name}', 'Downloads में सेव हुआ: {name}'],
+    file_fail: ['Could not save the file. Tell the developer this: {why}', 'फ़ाइल सेव नहीं हुई। डेवलपर को यह बताओ: {why}'],
+
     prot_yes: ['What is protected', 'क्या सुरक्षित है'],
     py1: ['Your book on this phone is locked with AES-256 encryption. The key is made from your PIN and is never stored.', 'इस फ़ोन में आपका खाता AES-256 ताले में है। चाबी आपके PIN से बनती है और कहीं रखी नहीं जाती।'],
     py2: ['The app locks itself when not used, and wrong PIN tries are slowed down.', 'ऐप न चले तो अपने आप ताला लगता है, और गलत PIN पर रुकना पड़ता है।'],
