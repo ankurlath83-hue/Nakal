@@ -345,7 +345,7 @@ en:{
   gSect:"Google account", gSignIn:"Sign in with Google", gSignInSub:"Safe copy, and the same book on your other devices", gHave:"I already use Bahi: sign in with Google",
   gAs:"Signed in as {0}", gOut:"Sign out", gOutAsk:"Sign out of Google?", gOutSub:"This device keeps its data. It just stops saving to your Google account.",
   gFail:"Google sign-in did not work. Check your internet and try again.", gNoBook:"Signed in. Your book will be saved to your Google account.",
-  gSaved:"Signed in. Your book is now saved to your Google account.", gFound:"Your book was found. Enter its PIN.", gConnecting:"Connecting...", roundOff:"Round off", on:"On", off:"Off", itemsBtn:"Add items, qty and rate ›", replacesEntry:"This bill will replace the ledger bill of {0} on {1}.",
+  gSaved:"Signed in. Your book is now saved to your Google account.", gFound:"Your book was found. Enter its PIN.", gConnecting:"Connecting...", roundOff:"Round off", auto:"Auto", billZero:"The round off is bigger than the bill. Check the amount.", itemsBtn:"Add items, qty and rate ›", replacesEntry:"This bill will replace the ledger bill of {0} on {1}.",
   importCsv:"Import from Hisab Pad or Nakal",
   nkT:"Nakal backup", nkS:"Type the password you set when you made this backup in Nakal.", nkPh:"Backup password", nkOpen:"Open backup", nkWrong:"That password does not open this backup. Check it and try again.",
   nkSum:"{0} bills, {1} ledger entries and {2} parties.", nkItems:"{0} items with rates for the catalogue.", nkSkipB:"{0} bills are already in Bahi and will be skipped.", nkYes:"Import from Nakal", nkDone:"Added {0} bills and {1} entries from Nakal.", importT:"Import entries", importS:"{0} entries for {1} parties.", importTot:"Paid {0} · Bill {1}",
@@ -416,7 +416,7 @@ hi:{
   gSect:"गूगल खाता", gSignIn:"गूगल से साइन इन करें", gSignInSub:"सुरक्षित कॉपी, और दूसरे फोन/कंप्यूटर पर वही बही", gHave:"मैं पहले से बही चलाता हूं: गूगल से साइन इन करें",
   gAs:"{0} से साइन इन", gOut:"साइन आउट", gOutAsk:"गूगल से साइन आउट करें?", gOutSub:"इस फोन का डेटा रहेगा। बस गूगल खाते में सेव होना बंद होगा।",
   gFail:"गूगल साइन इन नहीं हुआ। इंटरनेट देखकर फिर कोशिश करें।", gNoBook:"साइन इन हो गया। आपकी बही गूगल खाते में सेव होगी।",
-  gSaved:"साइन इन हो गया। आपकी बही अब गूगल खाते में सेव है।", gFound:"आपकी बही मिल गई। उसका पिन डालें।", gConnecting:"जुड़ रहा है...", roundOff:"राउंड ऑफ", on:"चालू", off:"बंद", itemsBtn:"सामान, मात्रा और रेट जोड़ें ›", replacesEntry:"यह बिल {1} के {0} वाले खाता बिल की जगह लेगा।",
+  gSaved:"साइन इन हो गया। आपकी बही अब गूगल खाते में सेव है।", gFound:"आपकी बही मिल गई। उसका पिन डालें।", gConnecting:"जुड़ रहा है...", roundOff:"राउंड ऑफ", auto:"ऑटो", billZero:"राउंड ऑफ बिल से बड़ा है। रकम जांचें।", itemsBtn:"सामान, मात्रा और रेट जोड़ें ›", replacesEntry:"यह बिल {1} के {0} वाले खाता बिल की जगह लेगा।",
   importCsv:"हिसाब पैड या नकल से लाएं",
   nkT:"नकल बैकअप", nkS:"नकल में बैकअप बनाते समय जो पासवर्ड रखा था, वह डालें।", nkPh:"बैकअप पासवर्ड", nkOpen:"बैकअप खोलें", nkWrong:"इस पासवर्ड से बैकअप नहीं खुला। जांच कर फिर डालें।",
   nkSum:"{0} बिल, {1} खाता एंट्री और {2} पार्टी।", nkItems:"कैटलॉग के लिए {0} सामान और रेट।", nkSkipB:"{0} बिल पहले से बही में हैं, छोड़े जाएंगे।", nkYes:"नकल से लाएं", nkDone:"नकल से {0} बिल और {1} एंट्री जुड़ीं।", importT:"एंट्री लाएं", importS:"{1} पार्टी की {0} एंट्री।", importTot:"जमा {0} · बिल {1}",
@@ -737,7 +737,7 @@ function knownItems(){
    The app's own keypad, or a real keyboard on a computer, edits
    the draft; the phone keyboard is never opened.
    --------------------------------------------------------------- */
-const blankBill = () => ({id:null, party:"", date:today(), rows:[{item:"",rate:"",qty:""}], transport:"", roundOn:!!(S && S.set.round)});   // round off follows the last choice
+const blankBill = () => ({id:null, party:"", date:today(), rows:[{item:"",rate:"",qty:""}], transport:"", roundAmt:"", roundOn:!!(S && S.set.round)});   // roundAmt = typed round off; roundOn = auto to the nearest rupee (follows the last choice)
 const D = { bill:blankBill(), led:{amt:"", note:"", date:today()}, q:{parties:"", bills:"", pick:"", items:""}, edit:{amt:"", note:"", date:"", type:"paid"}, item:{name:"", rate:"", unit:""},
             party:{name:"", phone:"", credit:""}, cash:{}, onb:{biz:"", party:""}, set:{biz:"", credit:""} };
 const UI = { mode:"loading", tab:"bill", sub:null, pid:null, sheet:null, onb:0, rep:"month", pf:"all", alt:false, showKeys:false, lastNew:null };
@@ -757,7 +757,9 @@ function evalCalc(s){
 const calcPlain = v => String(v).split(/([×+])/).map(x => x==="×"||x==="+" ? ` ${x} ` : typed(x)).join("");
 /** What a calc box shows: "2 × 290 = 580" once there is a sum to show. */
 function calcShow(v){ v = String(v||""); if(!/[×+]/.test(v)) return typed(v); return calcPlain(v) + (/\d$/.test(v) ? ` = ${plain(evalCalc(v))}` : ""); }
-const showVal = (kind, v) => kind==="calc" ? calcShow(v) : (kind==="num"||kind==="int") ? typed(v) : v;
+const showVal = (kind, v) => kind==="calc" ? calcShow(v) : kind==="sgn" ? (v ? v[0] + typed(v.slice(1)) : "") : (kind==="num"||kind==="int") ? typed(v) : v;
+/** A signed field's value as a number: "-65" -> -65. */
+const sgnNum = v => { v = String(v||""); return v.length > 1 ? (v[0]==="-" ? -1 : 1) * num(v.slice(1)) : 0; };
 function fld(path, kind, ph, cls){
   const v = getPath(D, path) || "";
   return `<div class="fld ${kind!=="text"&&kind!=="tel"?"num":""} ${cls||""}" data-path="${path}" data-kind="${kind}" data-ph="${esc(ph)}">${esc(showVal(kind, v))}</div>`;
@@ -791,8 +793,22 @@ function nextField(back){
 function typeKey(k){
   if(!F) return;
   let v = String(getPath(D, F.path) || ""); const kind = F.kind;
-  if(k==="BS") v = v.slice(0,-1);
+  if(k==="BS"){ v = v.slice(0,-1); if(kind==="sgn" && v.length < 2) v = ""; }   // removing the last digit removes the sign too
   else if(k==="CLR") v = "";
+  else if(kind==="sgn"){                        // a sign then a number: "-65". A typed number starts as minus; ± flips it
+    if(k==="±"){ if(!v) return; v = (v[0]==="-" ? "+" : "-") + v.slice(1); }
+    else if(k==="-" || k==="+") v = k + v.slice(1);            // keyboard: the sign can be typed first
+    else {
+      const n = v.slice(1);
+      if(k==="."){ if(n.includes(".")) return; v = (v ? v[0] : "-") + (n || "0") + "."; }
+      else if(/^\d+$/.test(k)){
+        if(k==="00" && !n) return;
+        const [a,b] = n.split(".");
+        if(b!==undefined){ if(b.length + k.length > 2) return; } else if(a.length + k.length > 6) return;
+        v = (v ? v[0] : "-") + (n==="0" ? "" : n) + k;
+      } else return;
+    }
+  }
   else if(kind==="text"){ if(v.length < 40){ if(k===" " && (!v || v.endsWith(" "))) return; v += k; } }
   else if(kind==="calc"){                       // numbers joined by × and +
     if(k==="×" || k==="+"){
@@ -893,7 +909,8 @@ function drawKeys(){
       : [`<button data-k="BS" class="fn">${BSICON}</button>`, `<button data-k="CLR" class="fn">${t("clear")}</button>`, `<button data-k="NEXT" class="go" style="grid-row:span 2;height:auto">${t("next")}</button>`, ""];
     const d = c => `<button data-k="${c}">${c}</button>`, calc = F.kind==="calc";
     if(calc) side[1] = `<button data-k="+" class="fn">+</button>`;   // transport: + in place of Clear, × in place of 00
-    keys = `<div class="keys n ${hidek}">${d(7)}${d(8)}${d(9)}${side[0]}${d(4)}${d(5)}${d(6)}${side[1]}${d(1)}${d(2)}${d(3)}${side[2]}${calc?`<button data-k="×" class="fn">×</button>`:d("00")}${d(0)}${F.kind==="num"||calc?d("."):"<span></span>"}${side[3]}</div>`;
+    if(F.kind==="sgn") side[1] = `<button data-k="±" class="fn">+ / −</button>`;   // round off: plus or minus
+    keys = `<div class="keys n ${hidek}">${d(7)}${d(8)}${d(9)}${side[0]}${d(4)}${d(5)}${d(6)}${side[1]}${d(1)}${d(2)}${d(3)}${side[2]}${calc?`<button data-k="×" class="fn">×</button>`:d("00")}${d(0)}${F.kind==="num"||F.kind==="sgn"||calc?d("."):"<span></span>"}${side[3]}</div>`;
     if(led && hidek) keys += `<div class="keys n" style="grid-template-columns:1fr 1fr"><button data-k="PAID" class="paid">${t("paid")} (P)</button><button data-k="BILL" class="bill">${t("billed")} (B)</button></div>`;
   }
   kb.innerHTML = `<div id="sugg"></div>${bar}${keys}`;
@@ -1048,12 +1065,13 @@ function billHTML(){
     <button class="btn ghost" data-act="addRow">${t("addItem")}</button>
     <div class="tot"><span class="mut">${t("subTotal")}</span><span id="bsub"></span></div>
     <div class="tot"><span class="mut">${t("transport")}</span><div style="width:62%">${fld("bill.transport","calc","0")}</div></div>
-    <div class="tot"><span class="mut">${t("roundOff")}</span><span class="row"><span id="bround" class="mut" style="font-variant-numeric:tabular-nums"></span><button class="chip ${b.roundOn?"on":""}" data-act="toggleRound">${t(b.roundOn?"on":"off")}</button></span></div>
+    <div class="tot"><span class="mut">${t("roundOff")}</span><span class="row" style="width:62%"><div class="sp">${fld("bill.roundAmt","sgn","0")}</div><button class="chip ${b.roundOn && !sgnNum(b.roundAmt)?"on":""}" data-act="toggleRound">${t("auto")}</button></span></div>
     ${ed ? `<div class="row mt3"><button class="btn" style="flex:1" data-act="shareBill" data-arg="${b.id}">${t("share")}</button><button class="btn" style="flex:1;color:var(--red)" data-act="askDelBill" data-arg="${b.id}">${t("del")}</button></div>` : ""}
     <div class="bbar"><div><div class="sm mut">${t("grand")}</div><div class="mid" id="bgrand"></div></div><button class="btn pri" data-act="saveBill">${t(ed?"saveChanges":"saveBill")}</button></div>`;
 }
 function billMath(b){ let sub = 0; const subs = b.rows.map(r => { const s = r2(num(r.rate)*num(r.qty)); sub += s; return s; }); sub = r2(sub);
-  const raw = r2(sub + evalCalc(b.transport)), grand = b.roundOn ? Math.round(raw) : raw;
+  const raw = r2(sub + evalCalc(b.transport)), man = sgnNum(b.roundAmt);        // a typed round off wins over Auto
+  const grand = man ? r2(raw + man) : b.roundOn ? Math.round(raw) : raw;
   return {subs, sub, grand, round:r2(grand - raw)}; }
 /** "+0.25" / "-0.40" for the round off line. */
 const signed = n => (n > 0 ? "+" : n < 0 ? "-" : "") + Math.abs(n).toFixed(2);
@@ -1061,7 +1079,8 @@ function paintBillTotals(){
   const m = billMath(D.bill);
   m.subs.forEach((s,i)=>{ const el = $("#sub"+i); if(el) el.textContent = s ? plain(s) : ""; });
   const a = $("#bsub"), g = $("#bgrand"); if(a) a.textContent = money(m.sub); if(g) g.textContent = money(m.grand);
-  const ro = $("#bround"); if(ro) ro.textContent = D.bill.roundOn && m.round ? signed(m.round) : "";
+  const ro = fldEl("bill.roundAmt"); if(ro) ro.dataset.ph = D.bill.roundOn && m.round && !sgnNum(D.bill.roundAmt) ? signed(m.round) : "0";   // Auto shows its amount in the empty box
+  const ch = $('[data-act="toggleRound"]'); if(ch) ch.classList.toggle("on", !!D.bill.roundOn && !sgnNum(D.bill.roundAmt));
 }
 
 /* ---- Ledger screen ---- */
@@ -1280,7 +1299,8 @@ function billText(b){
 }
 function billDoc(b){
   const p = partyById(b.pid), foot = [];
-  if(b.transport){ foot.push([t("subTotal"), money(r2(b.total-b.transport-(b.round||0)))]); foot.push([t("transport") + (b.tcalc ? ` (${calcPlain(b.tcalc)})` : ""), money(b.transport)]); }
+  if(b.transport || b.round) foot.push([t("subTotal"), money(r2(b.total-b.transport-(b.round||0)))]);
+  if(b.transport){ foot.push([t("transport") + (b.tcalc ? ` (${calcPlain(b.tcalc)})` : ""), money(b.transport)]); }
   if(b.round) foot.push([t("roundOff"), signed(b.round)]);
   foot.push([t("grand"), money(b.total), true]);
   return {name:`bill-${b.no}`, title:S.biz.name||"Bahi", sub:[`${t("billNo", b.no)}   ${fdate(b.date,true)}`, `${t("partyL")}: ${p?p.name:""}`],
@@ -1506,14 +1526,19 @@ const A = {
   },
 
   /* bill */
-  toggleRound(){ D.bill.roundOn = !D.bill.roundOn; S.set.round = D.bill.roundOn; commit(); const f = F && F.path; render(); if(f) focusField(f); },
+  toggleRound(){
+    if(sgnNum(D.bill.roundAmt)){ D.bill.roundAmt = ""; D.bill.roundOn = true; }   // from a typed amount back to Auto
+    else D.bill.roundOn = !D.bill.roundOn;
+    S.set.round = D.bill.roundOn; commit(); const f = F && F.path; render(); if(f) focusField(f);
+  },
   addRow(){ D.bill.rows.push({item:"",rate:"",qty:""}); render(); focusField(`bill.rows.${D.bill.rows.length-1}.item`); },
   delRow(i){ D.bill.rows.splice(+i,1); F = null; render(); },
   newBill(){ D.bill = blankBill(); F = null; UI.tab = "bill"; render(); },
   billFor(id){ D.bill = blankBill(); D.bill.party = partyById(+id).name; UI.sheet = null; UI.tab = "bill"; render(); focusField("bill.rows.0.item"); },
   openBill(id){
     const b = S.bills.find(x=>x.id===+id); if(!b) return; const p = partyById(b.pid);
-    D.bill = {id:b.id, party:p?p.name:"", date:b.date, rows:b.rows.map(r=>({item:r.item, rate:String(r.rate), qty:String(r.qty)})), transport:b.tcalc || (b.transport?String(b.transport):""), roundOn:!!b.roundOn};
+    D.bill = {id:b.id, party:p?p.name:"", date:b.date, rows:b.rows.map(r=>({item:r.item, rate:String(r.rate), qty:String(r.qty)})), transport:b.tcalc || (b.transport?String(b.transport):""), roundOn:!!b.roundOn,
+      roundAmt:b.roundMan && b.round ? (b.round < 0 ? "-" : "+") + String(Math.abs(b.round)) : ""};
     UI.sheet = null; UI.tab = "bill"; F = null; render();
   },
   saveBill(){
@@ -1526,14 +1551,16 @@ const A = {
     const tcalc = /[×+]/.test(d.transport) ? d.transport.replace(/[×+.]+$/,"") : "";   // keep "2×290" to show on the bill
     rows.forEach(r => { if(r.item && !findItem(r.item)) S.items.push({id:nid(), name:r.item, rate:r.rate, unit:""}); });   // new items join the catalogue
     const rawTotal = r2(rows.reduce((s,r)=> s + r2(r.rate*r.qty), 0) + transport);
-    const roundOn = !!d.roundOn, total = roundOn ? Math.round(rawTotal) : rawTotal, round = r2(total - rawTotal);
+    const man = sgnNum(d.roundAmt), roundMan = !!man, roundOn = !!d.roundOn;
+    const total = man ? r2(rawTotal + man) : roundOn ? Math.round(rawTotal) : rawTotal, round = r2(total - rawTotal);
+    if(!(total > 0)){ bad("bill.roundAmt"); return toast(t("billZero")); }
     if(d.id!=null){
-      const b = S.bills.find(x=>x.id===d.id); Object.assign(b, {pid:p.id, date:d.date, rows, transport, tcalc, total, roundOn, round});
+      const b = S.bills.find(x=>x.id===d.id); Object.assign(b, {pid:p.id, date:d.date, rows, transport, tcalc, total, roundOn, roundMan, round});
       const e = S.entries.find(x=>x.billId===b.id); if(e) Object.assign(e, {pid:p.id, date:d.date, amt:total});
       commit(); D.bill = blankBill(); render(); toast(t("billUpdated"), true);
       return;
     }
-    const b = {id:nid(), no:S.billSeq++, pid:p.id, date:d.date, rows, transport, tcalc, total, roundOn, round};
+    const b = {id:nid(), no:S.billSeq++, pid:p.id, date:d.date, rows, transport, tcalc, total, roundOn, roundMan, round};
     S.bills.push(b);
     S.entries.push({id:nid(), pid:p.id, type:"bill", amt:total, date:d.date, note:t("billNo", b.no), billId:b.id});
     if(d.fromEntry) S.entries = S.entries.filter(x => x.id!==d.fromEntry);   // the itemised bill takes the place of the plain ledger entry
@@ -1808,6 +1835,7 @@ document.addEventListener("keydown", e => {
     e.preventDefault();
     if(F.kind==="text") typeKey(/[a-z]/i.test(e.key) && !e.shiftKey ? caseFor(e.key) : e.key);
     else if(F.kind==="calc" && /^[*xX+]$/.test(e.key)) typeKey(e.key==="+" ? "+" : "×");
+    else if(F.kind==="sgn" && (e.key==="-" || e.key==="+")) typeKey(e.key);
     else if(/[\d.]/.test(e.key)) typeKey(e.key);
   }
 });
