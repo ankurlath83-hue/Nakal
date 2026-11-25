@@ -195,8 +195,9 @@ label.lb{display:block;font-size:var(--t1);color:var(--mut);margin:var(--s3) 2px
 #sugg{display:flex;gap:var(--s2);overflow-x:auto;padding:0 0 var(--s2);scrollbar-width:none}
 #sugg:empty{display:none}
 #sugg::-webkit-scrollbar{display:none}
-#sugg button{min-height:44px;min-width:48px;padding:0 var(--s3);border-radius:12px;background:var(--card);border:1px solid var(--line);font-size:var(--t1);white-space:nowrap}
+#sugg button{flex:none;min-height:44px;min-width:48px;padding:0 var(--s4);   /* flex:none = never squeezed; the row scrolls sideways */border-radius:12px;background:var(--card);border:1px solid var(--line);font-size:var(--t1);white-space:nowrap}
 #sugg button:active{background:var(--line)}
+#sugg button small{font-size:var(--t1);color:var(--mut);margin-left:var(--s2)}
 .keys{display:grid;gap:var(--s2)}
 .keys.n{grid-template-columns:repeat(4,1fr)}
 .keys button{height:52px;border-radius:12px;background:var(--key);font-size:var(--t3);font-weight:600;box-shadow:0 1px 0 rgba(0,0,0,.12);touch-action:manipulation;transition:background .08s}
@@ -848,14 +849,14 @@ function suggestions(){
   const m = F.path.match(/^bill\.rows\.(\d+)\.item$/);
   if(m){
     return knownItems().filter(x => x.item.toLowerCase().includes(v) && x.item.toLowerCase()!==v).slice(0,8)
-      .map(x => ({label:x.item+" · "+plain(x.rate), set:{[F.path]:x.item, [`bill.rows.${m[1]}.rate`]:String(x.rate)}, to:`bill.rows.${m[1]}.qty`}));
+      .map(x => ({label:x.item, sub:x.rate ? "₹"+plain(x.rate) : "", set:{[F.path]:x.item, [`bill.rows.${m[1]}.rate`]:String(x.rate)}, to:`bill.rows.${m[1]}.qty`}));
   }
   if(F.path==="led.note" || F.path==="led.amt") return t("quick").map(x => ({label:x, set:{"led.note":x}}));
   if(F.path==="edit.note" || F.path==="edit.amt") return t("quick").map(x => ({label:x, set:{"edit.note":x}}));
   return [];
 }
 let SUGG = [];
-function drawSugg(){ const el = $("#sugg"); if(!el) return; SUGG = suggestions(); el.innerHTML = SUGG.map((s,i)=>`<button data-sg="${i}">${esc(s.label)}</button>`).join(""); }
+function drawSugg(){ const el = $("#sugg"); if(!el) return; SUGG = suggestions(); el.innerHTML = SUGG.map((s,i)=>`<button data-sg="${i}">${esc(s.label)}${s.sub?`<small>${esc(s.sub)}</small>`:""}</button>`).join(""); el.scrollLeft = 0; }
 function pickSugg(i){
   const s = SUGG[i]; if(!s) return;
   for(const p in s.set){ setPath(D, p, s.set[p]); paintField(p); }
