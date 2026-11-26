@@ -193,6 +193,12 @@ label.lb{display:block;font-size:var(--t1);color:var(--mut);margin:var(--s3) 2px
 /* ---------- Keypads ---------- */
 #kb{background:var(--keyd);border-top:1px solid var(--line);padding:var(--s2) var(--s2) var(--s2)}
 #sugg{display:flex;gap:var(--s2);overflow-x:auto;padding:0 0 var(--s2);scrollbar-width:none}
+/* party and item suggestions: a drop-down list, best match first, scrolls up and down */
+#sugg.dd{display:block;overflow-x:hidden;overflow-y:auto;max-height:148px;padding:0;margin-bottom:var(--s2);background:var(--card);border:1px solid var(--line);border-radius:12px;scrollbar-width:thin}
+#sugg.dd button{display:flex;width:100%;justify-content:space-between;align-items:center;gap:var(--s3);border:0;border-bottom:1px solid var(--line);border-radius:0;background:none;font-size:var(--t2);text-align:left;padding:0 var(--s4)}
+#sugg.dd button:last-child{border-bottom:0}
+#sugg.dd button span{overflow:hidden;text-overflow:ellipsis;white-space:nowrap;min-width:0}
+#sugg.dd button small{flex:none;font-variant-numeric:tabular-nums}
 #sugg:empty{display:none}
 #sugg::-webkit-scrollbar{display:none}
 #sugg button{flex:none;min-height:44px;min-width:48px;padding:0 var(--s4);   /* flex:none = never squeezed; the row scrolls sideways */border-radius:12px;background:var(--card);border:1px solid var(--line);font-size:var(--t1);white-space:nowrap}
@@ -251,7 +257,7 @@ body.desk #kb .keys.hidek{display:none}
 }
 /* short phones: slimmer keys and sheets so Save stays visible above the keypad */
 @media (max-height:700px){
-  .keys button{height:44px} .keys.a button{height:44px} #kb{padding:var(--s1) var(--s2)} #sugg{padding-bottom:var(--s1)}
+  .keys button{height:44px} .keys.a button{height:44px} #kb{padding:var(--s1) var(--s2)} #sugg{padding-bottom:var(--s1)} #sugg.dd{max-height:100px;padding:0}
   #sheet .box{padding:var(--s3) var(--s4) var(--s4)} #sheet .acts{margin-top:var(--s3)} .btn{min-height:48px}
 }
 @media (prefers-reduced-motion:reduce){ *{animation-duration:.01s!important;transition-duration:.01s!important} }
@@ -345,7 +351,7 @@ en:{
   gSect:"Google account", gSignIn:"Sign in with Google", gSignInSub:"Safe copy, and the same book on your other devices", gHave:"I already use Bahi: sign in with Google",
   gAs:"Signed in as {0}", gOut:"Sign out", gOutAsk:"Sign out of Google?", gOutSub:"This device keeps its data. It just stops saving to your Google account.",
   gFail:"Google sign-in did not work. Check your internet and try again.", gNoBook:"Signed in. Your book will be saved to your Google account.",
-  gSaved:"Signed in. Your book is now saved to your Google account.", gFound:"Your book was found. Enter its PIN.", gConnecting:"Connecting...", roundOff:"Round off", auto:"Auto", billZero:"The round off is bigger than the bill. Check the amount.", itemsBtn:"Add items, qty and rate ›", replacesEntry:"This bill will replace the ledger bill of {0} on {1}.",
+  gSaved:"Signed in. Your book is now saved to your Google account.", gFound:"Your book was found. Enter its PIN.", gConnecting:"Connecting...", roundOff:"Round off", auto:"Auto", sortNew:"Newest", sortOld:"Oldest", sortHigh:"Amount: high", sortLow:"Amount: low", sortParty:"Party A-Z", sortNo:"Bill no.", billZero:"The round off is bigger than the bill. Check the amount.", itemsBtn:"Add items, qty and rate ›", replacesEntry:"This bill will replace the ledger bill of {0} on {1}.",
   importCsv:"Import from Hisab Pad or Nakal",
   nkT:"Nakal backup", nkS:"Type the password you set when you made this backup in Nakal.", nkPh:"Backup password", nkOpen:"Open backup", nkWrong:"That password does not open this backup. Check it and try again.",
   nkSum:"{0} bills, {1} ledger entries and {2} parties.", nkItems:"{0} items with rates for the catalogue.", nkSkipB:"{0} bills are already in Bahi and will be skipped.", nkYes:"Import from Nakal", nkDone:"Added {0} bills and {1} entries from Nakal.", importT:"Import entries", importS:"{0} entries for {1} parties.", importTot:"Paid {0} · Bill {1}",
@@ -416,7 +422,7 @@ hi:{
   gSect:"गूगल खाता", gSignIn:"गूगल से साइन इन करें", gSignInSub:"सुरक्षित कॉपी, और दूसरे फोन/कंप्यूटर पर वही बही", gHave:"मैं पहले से बही चलाता हूं: गूगल से साइन इन करें",
   gAs:"{0} से साइन इन", gOut:"साइन आउट", gOutAsk:"गूगल से साइन आउट करें?", gOutSub:"इस फोन का डेटा रहेगा। बस गूगल खाते में सेव होना बंद होगा।",
   gFail:"गूगल साइन इन नहीं हुआ। इंटरनेट देखकर फिर कोशिश करें।", gNoBook:"साइन इन हो गया। आपकी बही गूगल खाते में सेव होगी।",
-  gSaved:"साइन इन हो गया। आपकी बही अब गूगल खाते में सेव है।", gFound:"आपकी बही मिल गई। उसका पिन डालें।", gConnecting:"जुड़ रहा है...", roundOff:"राउंड ऑफ", auto:"ऑटो", billZero:"राउंड ऑफ बिल से बड़ा है। रकम जांचें।", itemsBtn:"सामान, मात्रा और रेट जोड़ें ›", replacesEntry:"यह बिल {1} के {0} वाले खाता बिल की जगह लेगा।",
+  gSaved:"साइन इन हो गया। आपकी बही अब गूगल खाते में सेव है।", gFound:"आपकी बही मिल गई। उसका पिन डालें।", gConnecting:"जुड़ रहा है...", roundOff:"राउंड ऑफ", auto:"ऑटो", sortNew:"नए पहले", sortOld:"पुराने पहले", sortHigh:"रकम: ज्यादा", sortLow:"रकम: कम", sortParty:"पार्टी A-Z", sortNo:"बिल नं.", billZero:"राउंड ऑफ बिल से बड़ा है। रकम जांचें।", itemsBtn:"सामान, मात्रा और रेट जोड़ें ›", replacesEntry:"यह बिल {1} के {0} वाले खाता बिल की जगह लेगा।",
   importCsv:"हिसाब पैड या नकल से लाएं",
   nkT:"नकल बैकअप", nkS:"नकल में बैकअप बनाते समय जो पासवर्ड रखा था, वह डालें।", nkPh:"बैकअप पासवर्ड", nkOpen:"बैकअप खोलें", nkWrong:"इस पासवर्ड से बैकअप नहीं खुला। जांच कर फिर डालें।",
   nkSum:"{0} बिल, {1} खाता एंट्री और {2} पार्टी।", nkItems:"कैटलॉग के लिए {0} सामान और रेट।", nkSkipB:"{0} बिल पहले से बही में हैं, छोड़े जाएंगे।", nkYes:"नकल से लाएं", nkDone:"नकल से {0} बिल और {1} एंट्री जुड़ीं।", importT:"एंट्री लाएं", importS:"{1} पार्टी की {0} एंट्री।", importTot:"जमा {0} · बिल {1}",
@@ -724,12 +730,28 @@ function itemReport(k){
   return [...m.values()].map(o => ({item:o.item, qty:Math.round(o.qty*1000)/1000, amt:r2(o.amt), n:o.ids.size})).sort((x,y)=> y.amt-x.amt || x.item.localeCompare(y.item));
 }
 /** Item names with rates for suggestions: the catalogue first, then anything else billed before. */
+/** Each item's most recent rate: from the latest bill by bill date (same date: the later bill),
+    unless the rate was set by hand in Items and rates on or after that date. */
+function lastBilled(){
+  const m = new Map();
+  for(const b of S.bills) for(const r of b.rows){
+    if(!r.item || !(r.rate > 0)) continue;
+    const k = r.item.toLowerCase(), o = m.get(k);
+    if(!o || b.date > o.date || (b.date===o.date && b.id > o.id)) m.set(k, {item:r.item, rate:r.rate, date:b.date, id:b.id});
+  }
+  return m;
+}
 function knownItems(){
-  const seen = new Map();
-  for(const x of S.items) seen.set(x.name.toLowerCase(), {item:x.name, rate:x.rate});
-  for(let i=S.bills.length-1;i>=0;i--) for(const r of S.bills[i].rows){ const k = r.item.toLowerCase(); if(r.item && !seen.has(k)) seen.set(k, {item:r.item, rate:r.rate}); }
+  const lb = lastBilled(), seen = new Map();
+  for(const x of S.items){
+    const k = x.name.toLowerCase(), b = lb.get(k);
+    const rate = b && !(x.rateDate && x.rateDate >= b.date) ? b.rate : x.rate;
+    seen.set(k, {item:x.name, rate, last:b ? b.date : (x.rateDate || "")});
+  }
+  for(const [k,b] of lb) if(!seen.has(k)) seen.set(k, {item:b.item, rate:b.rate, last:b.date});
   return [...seen.values()];
 }
+const latestRate = name => { const k = String(name).toLowerCase(), x = knownItems().find(i => i.item.toLowerCase()===k); return x ? x.rate : 0; };
 
 /* ---------------------------------------------------------------
    6. ENTRY FIELDS AND KEYPADS
@@ -740,7 +762,7 @@ function knownItems(){
 const blankBill = () => ({id:null, party:"", date:today(), rows:[{item:"",rate:"",qty:""}], transport:"", roundAmt:"", roundOn:!!(S && S.set.round)});   // roundAmt = typed round off; roundOn = auto to the nearest rupee (follows the last choice)
 const D = { bill:blankBill(), led:{amt:"", note:"", date:today()}, q:{parties:"", bills:"", pick:"", items:""}, edit:{amt:"", note:"", date:"", type:"paid"}, item:{name:"", rate:"", unit:""},
             party:{name:"", phone:"", credit:""}, cash:{}, onb:{biz:"", party:""}, set:{biz:"", credit:""} };
-const UI = { mode:"loading", tab:"bill", sub:null, pid:null, sheet:null, onb:0, rep:"month", pf:"all", alt:false, showKeys:false, lastNew:null };
+const UI = { mode:"loading", tab:"bill", sub:null, pid:null, sheet:null, onb:0, rep:"month", pf:"all", bsort:"new", alt:false, showKeys:false, lastNew:null };
 let F = null;   // the active field: {path, kind}
 const DESK = window.matchMedia && matchMedia("(hover:hover) and (pointer:fine)").matches;
 if(DESK) document.body.classList.add("desk");
@@ -860,19 +882,28 @@ function suggestions(){
   if(!F || !S) return [];
   const v = String(getPath(D,F.path)||"").toLowerCase();
   if(F.path==="bill.party"){
-    return S.parties.filter(p => p.name.toLowerCase().includes(v) && p.name.toLowerCase()!==v).slice(0,8).map(p => ({label:p.name, set:{[F.path]:p.name}, next:true}));
+    const rec = new Map(recentParties().map((p,i) => [p.id, i]));
+    return S.parties.filter(p => p.name.toLowerCase().includes(v) && p.name.toLowerCase()!==v)
+      .sort((a,b) => (b.name.toLowerCase().startsWith(v) - a.name.toLowerCase().startsWith(v)) || (rec.get(a.id) - rec.get(b.id)))
+      .slice(0,20).map(p => ({label:p.name, set:{[F.path]:p.name}, next:true, dd:true}));
   }
   const m = F.path.match(/^bill\.rows\.(\d+)\.item$/);
   if(m){
-    return knownItems().filter(x => x.item.toLowerCase().includes(v) && x.item.toLowerCase()!==v).slice(0,8)
-      .map(x => ({label:x.item, sub:x.rate ? "₹"+plain(x.rate) : "", set:{[F.path]:x.item, [`bill.rows.${m[1]}.rate`]:String(x.rate)}, to:`bill.rows.${m[1]}.qty`}));
+    return knownItems().filter(x => x.item.toLowerCase().includes(v) && x.item.toLowerCase()!==v)
+      .sort((a,b) => (b.item.toLowerCase().startsWith(v) - a.item.toLowerCase().startsWith(v)) || (a.last < b.last ? 1 : a.last > b.last ? -1 : a.item.localeCompare(b.item)))
+      .slice(0,30).map(x => ({dd:true, label:x.item, sub:x.rate ? "₹"+plain(x.rate) : "", set:{[F.path]:x.item, [`bill.rows.${m[1]}.rate`]:String(x.rate)}, to:`bill.rows.${m[1]}.qty`}));
   }
   if(F.path==="led.note" || F.path==="led.amt") return t("quick").map(x => ({label:x, set:{"led.note":x}}));
   if(F.path==="edit.note" || F.path==="edit.amt") return t("quick").map(x => ({label:x, set:{"edit.note":x}}));
   return [];
 }
 let SUGG = [];
-function drawSugg(){ const el = $("#sugg"); if(!el) return; SUGG = suggestions(); el.innerHTML = SUGG.map((s,i)=>`<button data-sg="${i}">${esc(s.label)}${s.sub?`<small>${esc(s.sub)}</small>`:""}</button>`).join(""); el.scrollLeft = 0; }
+function drawSugg(){
+  const el = $("#sugg"); if(!el) return; SUGG = suggestions();
+  el.classList.toggle("dd", SUGG.length > 0 && !!SUGG[0].dd);
+  el.innerHTML = SUGG.map((s,i)=>`<button data-sg="${i}"><span>${esc(s.label)}</span>${s.sub?`<small>${esc(s.sub)}</small>`:""}</button>`).join("");
+  el.scrollLeft = 0; el.scrollTop = 0;
+}
 function pickSugg(i){
   const s = SUGG[i]; if(!s) return;
   for(const p in s.set){ setPath(D, p, s.set[p]); paintField(p); }
@@ -1136,7 +1167,9 @@ function moreHTML(){
       ${NOTES.map(n=>`<div class="row" style="margin-top:8px"><div style="width:64px;font-weight:700">₹${n}</div><span class="mut">×</span><div style="width:100px">${fld("cash."+n,"int","0")}</div><span class="sp"></span><span id="cs${n}" style="font-variant-numeric:tabular-nums"></span></div>`).join("")}
       <div class="tot mt3"><b>${t("cashTotal")}</b><span class="mid" id="ctot"></span></div>`;
   }
-  if(UI.sub==="bills") return `<div class="row">${back}</div><h2 style="margin-top:12px">${t("allBills")}</h2>${fld("q.bills","text",t("searchBills"))}<div id="blist">${billListHTML()}</div>`;
+  if(UI.sub==="bills") return `<div class="row">${back}</div><h2 style="margin-top:12px">${t("allBills")}</h2>${fld("q.bills","text",t("searchBills"))}
+    <div class="chips mt2" style="flex-wrap:wrap;overflow:visible">${[["new","sortNew"],["old","sortOld"],["high","sortHigh"],["low","sortLow"],["party","sortParty"],["no","sortNo"]].map(([k,w])=>`<button class="chip ${UI.bsort===k?"on":""}" data-act="bSort" data-arg="${k}">${t(w)}</button>`).join("")}</div>
+    <div id="blist">${billListHTML()}</div>`;
   if(UI.sub==="items") return `<div class="row wrap">${back}<span class="sp"></span><button class="chip" data-act="shareRates">${t("shareRates")}</button><button class="chip on" data-act="editItem">${t("addItemC")}</button></div>
     <h2 class="mt3">${t("catalogue")}</h2>${fld("q.items","text",t("searchItem"))}<div id="ilist">${itemListHTML()}</div>`;
   if(UI.sub==="report"){
@@ -1173,15 +1206,21 @@ function itemListHTML(){
   if(!S.items.length) return `<div class="empty"><b>${t("noItems")}</b>${t("noItemsSub")}</div>`;
   const q = D.q.items.toLowerCase();
   return [...S.items].filter(x => x.name.toLowerCase().includes(q)).sort((a,b)=>a.name.localeCompare(b.name))
-    .map(x => `<button class="card pcard" data-act="editItem" data-arg="${x.id}"><div class="t"><span>${esc(x.name)}</span><span>${money(x.rate)}${x.unit?` <span class="sm mut">/ ${esc(x.unit)}</span>`:""}</span></div></button>`).join("");
+    .map(x => `<button class="card pcard" data-act="editItem" data-arg="${x.id}"><div class="t"><span>${esc(x.name)}</span><span>${money(latestRate(x.name))}${x.unit?` <span class="sm mut">/ ${esc(x.unit)}</span>`:""}</span></div></button>`).join("");
 }
 const NOTES = [500,200,100,50,20,10,5,2,1];
 function paintCash(){ let tot = 0; NOTES.forEach(n => { const s = n*num(D.cash[n]); tot += s; const el = $("#cs"+n); if(el) el.textContent = s ? money(s) : ""; }); const e = $("#ctot"); if(e) e.textContent = money(tot); if(S){ S.cash = {...D.cash}; commit(); } }
+/** Order for All bills, chosen with the sort buttons. */
+function billSorter(){
+  const newest = (a,b) => a.date<b.date?1:a.date>b.date?-1:b.id-a.id, pn = b => (partyById(b.pid)||{name:""}).name.toLowerCase();
+  return ({ new:newest, old:(a,b)=>-newest(a,b), high:(a,b)=>b.total-a.total||newest(a,b), low:(a,b)=>a.total-b.total||newest(a,b),
+    party:(a,b)=>pn(a).localeCompare(pn(b))||newest(a,b), no:(a,b)=>b.no-a.no })[UI.bsort] || newest;
+}
 function billListHTML(){
   if(!S.bills.length) return `<div class="empty"><b>${t("noBills")}</b>${t("noBillsSub")}</div>`;
   const q = D.q.bills.toLowerCase();
   const list = S.bills.filter(b => { if(!q) return true; const p = partyById(b.pid); return (p&&p.name.toLowerCase().includes(q)) || String(b.no)===q || b.rows.some(r=>r.item.toLowerCase().includes(q)); })
-    .sort((a,b)=> a.date<b.date?1:a.date>b.date?-1:b.id-a.id).slice(0,200);
+    .sort(billSorter()).slice(0,300);
   return list.map(b => { const p = partyById(b.pid);
     return `<button class="card pcard" data-act="openBill" data-arg="${b.id}"><div class="t"><span>${esc(p?p.name:"")}</span><span>${money(b.total)}</span></div><div class="s"><span>${t("billNo", b.no)}</span><span>${fdate(b.date)}</span><span>${b.rows.length===1 ? t("item1") : t("items", b.rows.length)}</span></div></button>`; }).join("");
 }
@@ -1328,9 +1367,9 @@ function stmtDoc(pid){
     head:[t("date"),t("note"),t("paid"),t("billed"),t("balance")], w:[.2,.26,.18,.18,.18], al:["l","l","r","r","r"], rows,
     colors:{2:"#157F43",3:"#C2352B"}, foot:[[s.bal>=0?t("toReceive"):t("advance"), money(Math.abs(s.bal)), true]]};
 }
-function ratesText(){ return `*${S.biz.name||"Bahi"}*\n${t("rateChart")} · ${fdate(today(),true)}\n\n` + [...S.items].sort((a,b)=>a.name.localeCompare(b.name)).map((x,i)=>`${i+1}. ${x.name} - ${money(x.rate)}${x.unit?" / "+x.unit:""}`).join("\n"); }
+function ratesText(){ return `*${S.biz.name||"Bahi"}*\n${t("rateChart")} · ${fdate(today(),true)}\n\n` + [...S.items].sort((a,b)=>a.name.localeCompare(b.name)).map((x,i)=>`${i+1}. ${x.name} - ${money(latestRate(x.name))}${x.unit?" / "+x.unit:""}`).join("\n"); }
 function ratesDoc(){ return {name:"rate-chart-"+today(), title:S.biz.name||"Bahi", sub:[t("rateChart"), fdate(today(),true)], head:["#",t("item"),t("rate"),""], w:[.08,.52,.22,.18], al:["l","l","r","l"],
-  rows:[...S.items].sort((a,b)=>a.name.localeCompare(b.name)).map((x,i)=>[String(i+1), x.name, plain(x.rate), x.unit?"/ "+x.unit:""]), foot:[]}; }
+  rows:[...S.items].sort((a,b)=>a.name.localeCompare(b.name)).map((x,i)=>[String(i+1), x.name, plain(latestRate(x.name)), x.unit?"/ "+x.unit:""]), foot:[]}; }
 function repName(k){ if(k==="year"){ const [a,b] = repRange("year"); return t("fy", a.slice(0,4)+"-"+b.slice(2,4)); } return t({month:"repMonth", last:"repLast", all:"repAll"}[k]); }
 function repLabel(){ return repName(UI.rep); }
 function reportText(){ const rows = itemReport(UI.rep); return `*${S.biz.name||"Bahi"}*\n${t("report")} · ${repLabel()}\n\n` + rows.map((x,i)=>`${i+1}. ${x.item} - ${t("qty")} ${plain(x.qty)} = ${money(x.amt)}`).join("\n") + `\n\n*${t("repTotal")}: ${money(rows.reduce((a,x)=>a+x.amt,0))}*`; }
@@ -1659,12 +1698,12 @@ const A = {
   },
 
   /* catalogue and report */
-  editItem(id){ const x = id ? S.items.find(i=>i.id===+id) : null; D.item = x ? {name:x.name, rate:String(x.rate), unit:x.unit||""} : {name:D.q.items.trim(), rate:"", unit:""}; openSheet({type:"item", id:x?x.id:null, focus:x?"item.rate":"item.name"}); },
+  editItem(id){ const x = id ? S.items.find(i=>i.id===+id) : null; D.item = x ? {name:x.name, rate:String(latestRate(x.name)), unit:x.unit||""} : {name:D.q.items.trim(), rate:"", unit:""}; openSheet({type:"item", id:x?x.id:null, focus:x?"item.rate":"item.name"}); },
   saveItem(){
     const name = D.item.name.trim(), id = UI.sheet.id, ex = findItem(name);
     if(!name) return bad("item.name");
     if(ex && ex.id!==id){ bad("item.name"); return toast(t("itemExists")); }
-    snap(); const vals = {name, rate:num(D.item.rate), unit:D.item.unit.trim()};
+    snap(); const vals = {name, rate:num(D.item.rate), unit:D.item.unit.trim(), rateDate:today()};
     if(id) Object.assign(S.items.find(i=>i.id===id), vals); else S.items.push({id:nid(), ...vals});
     commit(); D.q.items = ""; closeSheet(); toast(t("itemSaved"));
   },
@@ -1680,6 +1719,7 @@ const A = {
   async backup(){ await saveNow(); const v = ls.get(LS_VAULT) || Cloud.vault; if(!v) return toast(t("storeFail")); if(await saveFile(`bahi-backup-${today()}.json`, JSON.stringify(v))){ S.lastBackup = today(); commit(); render(); toast(t("backupOk")); } },
   nudgeOff(){ S.nudgeOff = today(); commit(); render(); },
   pFilter(k){ UI.pf = k; render(); },
+  bSort(k){ UI.bsort = k; const el = $("#blist"); if(el){ el.innerHTML = billListHTML(); $$(".chip[data-act=bSort]").forEach(c => c.classList.toggle("on", c.dataset.arg===k)); } else render(); },
   restorePick(){ $("#file").value = ""; $("#file").click(); },
   restorePrev(){ restoreVault(ls.get(LS_PREV)); },
   csvPick(){ $("#csvfile").value = ""; $("#csvfile").click(); },
