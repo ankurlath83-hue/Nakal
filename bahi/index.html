@@ -183,8 +183,10 @@ body.typing .bbar{display:none}
 .dcell{position:relative;width:76px;flex:none}
 .dcell .dl{position:absolute;top:var(--s2);left:0;right:0;text-align:center;font-size:var(--t1);color:var(--mut);text-transform:uppercase;letter-spacing:.04em;pointer-events:none;z-index:1}
 .dcell .fld{justify-content:center;text-align:center;font-size:var(--t4);font-weight:700;min-height:88px;padding:var(--s4) 0 0;font-variant-numeric:tabular-nums}
-#dtprev{flex:1;min-width:0;padding-left:var(--s2)}
-#dtprev b{display:block;font-size:var(--t3)} #dtprev small{font-size:var(--t1);color:var(--green);font-weight:600} #dtprev small.bad{color:var(--red)}
+#dtprev,.dtprev{flex:1;min-width:0;padding-left:var(--s2)}
+#dtprev b,.dtprev b{display:block;font-size:var(--t3)} #dtprev small,.dtprev small{font-size:var(--t1);color:var(--green);font-weight:600} #dtprev small.bad,.dtprev small.bad{color:var(--red)}
+.bdrow{display:flex;gap:var(--s2);align-items:center}
+.dcell.sm{width:64px} .dcell.sm .dl{top:4px} .dcell.sm .fld{font-size:var(--t3);min-height:56px;padding:var(--s3) 0 0}
 
 /* ---------- Toast: sits over the title bar so it never covers a field or button in use ---------- */
 #toast{position:absolute;left:var(--s2);right:var(--s2);top:var(--s1);min-height:52px;z-index:8;background:var(--ink);color:var(--bg);border-radius:16px;padding:var(--s1) var(--s1) var(--s1) var(--s4);
@@ -805,9 +807,6 @@ function fieldOrder(){ const root = UI.sheet ? $("#sheet") : $("#main"); return 
 function nextField(back){
   if(!F) return;
   const p = F.path, m = p.match(/^bill\.rows\.(\d+)\.(item|rate|qty)$/);
-  if(p==="bill.party" && !back && !UI.sheet){   // party done → date → first item
-    const r = D.bill.rows.findIndex(x => !x.item); return openDate("bill.date", `bill.rows.${r<0 ? 0 : r}.item`);
-  }
   if(m && !back){
     const i = +m[1], rows = D.bill.rows, row = rows[i], last = i===rows.length-1;
     // rate is the last box in a row: open the next row
@@ -871,7 +870,6 @@ function typeKey(k){
   }
   F.fresh = false;
   setPath(D, F.path, v); paintField(F.path); onInput(F.path);
-  if(kind==="dd" && v.length===2 && F.path!=="dt.y") nextField();   // day full → month, month full → year
 }
 /** Capital letter at the start of each word, small letters after. */
 const caseFor = ch => { if(!F) return ch; const v = String(getPath(D,F.path)||""); return (!v || v.endsWith(" ")) ? ch.toUpperCase() : ch.toLowerCase(); };
@@ -880,6 +878,7 @@ const caseFor = ch => { if(!F) return ch; const v = String(getPath(D,F.path)||""
 function onInput(path){
   if(path.startsWith("bill.")) paintBillTotals();
   else if(path.startsWith("dt.")){ const e = $("#dtprev"); if(e) e.innerHTML = dtPreview(); }
+  else if(path.startsWith("bd.")){ const v = dtValue(D.bd); if(v){ D.bill.date = v; D.bd.for = v; } const e = $("#bdprev"); if(e) e.innerHTML = dtPreview(D.bd); }
   else if(path==="q.parties") $("#plist").innerHTML = partyListHTML();
   else if(path==="q.bills") $("#blist").innerHTML = billListHTML();
   else if(path==="q.pick") $("#picklist").innerHTML = pickListHTML();
@@ -1105,7 +1104,8 @@ function billHTML(){
   return `${tip}${nudge}<div class="row"><h2 style="margin:0">${ed ? t("billNo", saved.no) : t("newBill")}</h2><span class="sp"></span>
     ${ed ? `<button class="chip" data-act="newBill">${t("newBill")}</button>` : ""}<button class="chip" data-act="goBills">${t("savedBills")}</button></div>
     ${fe ? `<div class="tip mt3"><div>${t("replacesEntry", money(fe.amt), fdate(fe.date,true))}</div><button class="xbtn" data-act="newBill" aria-label="Cancel">×</button></div>` : ""}
-    <div class="row mt3"><div class="sp">${fld("bill.party","text",t("party"))}</div><button class="datechip ${b.date!==today()?"old":""}" data-act="pickDate" data-arg="bill.date">${fdate(b.date)}</button></div>
+    <div class="mt3">${fld("bill.party","text",t("party"))}</div>
+    ${(syncBd(), "")}<div class="bdrow mt2"><div class="dcell sm"><span class="dl">${t("dDay")}</span>${fld("bd.d","dd","DD")}</div><div class="dcell sm"><span class="dl">${t("dMonth")}</span>${fld("bd.m","dd","MM")}</div><div class="dcell sm"><span class="dl">${t("dYear")}</span>${fld("bd.y","dd","YY")}</div><div id="bdprev" class="dtprev">${dtPreview(D.bd)}</div></div>
     <div class="bhead"><span>${t("item")}</span><span>${t("qty")}</span><span>${t("rate")}</span><span>${t("amount")}</span><span></span></div>
     ${b.rows.map((r,i)=>`<div class="brow">${fld(`bill.rows.${i}.item`,"text",t("item"))}${fld(`bill.rows.${i}.qty`,"num","0")}${fld(`bill.rows.${i}.rate`,"num","0")}<div class="sub" id="sub${i}"></div>${b.rows.length>1?`<button class="xbtn" data-act="delRow" data-arg="${i}" aria-label="Remove">×</button>`:"<span></span>"}</div>`).join("")}
     <button class="btn ghost" data-act="addRow">${t("addItem")}</button>
@@ -1595,6 +1595,7 @@ const A = {
   saveBill(){
     const d = D.bill, name = d.party.trim();
     if(!name){ bad("bill.party"); return toast(t("enterParty")); }
+    if(D.bd && D.bd.ref===d && !dtValue(D.bd)){ toast(t("badDate")); return bad("bd.d"); }
     const rows = d.rows.map(r=>({item:r.item.trim(), rate:num(r.rate), qty:num(r.qty)})).filter(r => r.rate*r.qty > 0);
     if(!rows.length){ bad("bill.rows.0.rate"); return toast(t("enterItem")); }
     snap(); blurField();
@@ -1813,14 +1814,16 @@ function openDate(path, after){
   D.dt = {d, m, y:y.slice(2)};
   openSheet({type:"date", path, val:getPath(D,path), back:UI.sheet, focus:"dt.d", after});
 }
-function dtValue(){
-  const x = D.dt||{}, d = +x.d, m = +x.m, y = 2000 + (+x.y);
+/* bill date boxes D.bd follow D.bill.date; a fresh bill or another date refills them */
+function syncBd(){ const b = D.bill; if(!D.bd || D.bd.ref!==b || D.bd.for!==b.date){ const [y,m,d] = b.date.split("-"); D.bd = {d, m, y:y.slice(2), for:b.date, ref:b}; } }
+function dtValue(x){
+  x = x || D.dt || {}; const d = +x.d, m = +x.m, y = 2000 + (+x.y);
   if(!x.d || !x.m || String(x.y||"").length!==2 || m<1 || m>12 || d<1 || d>new Date(y, m, 0).getDate()) return "";
   return `${y}-${pad2(m)}-${pad2(d)}`;
 }
 function dtOk(k){ const x = D.dt||{}; if(k==="m") return +x.m>=1 && +x.m<=12; if(k==="y") return String(x.y||"").length===2; return +x.d>=1 && +x.d<=31 && (!dtOk("m") || !dtOk("y") || +x.d <= new Date(2000+(+x.y), +x.m, 0).getDate()); }
-function dtPreview(){
-  const v = dtValue(); if(!v) return `<b>&nbsp;</b><small class="bad">${t("badDate")}</small>`;
+function dtPreview(x){
+  const v = dtValue(x); if(!v) return `<b>&nbsp;</b><small class="bad">${t("badDate")}</small>`;
   const dt = new Date(v+"T00:00:00"), loc = LANG==="hi"?"hi-IN":"en-IN";
   const days = Math.round((new Date(today()+"T00:00:00") - dt)/864e5);
   const rel = days===0 ? t("today") : days===1 ? t("yesterday") : days>1 ? t("daysAgo", days) : t("daysAhead", -days);
