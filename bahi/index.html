@@ -197,8 +197,8 @@ body.typing .bbar{display:none}
 #kb{background:var(--keyd);border-top:1px solid var(--line);padding:var(--s2) var(--s2) var(--s2)}
 #sugg{display:flex;gap:var(--s2);overflow-x:auto;padding:0 0 var(--s2);scrollbar-width:none}
 /* party and item suggestions: a drop-down list, best match first, scrolls up and down */
-#sugg.dd{display:block;overflow-x:hidden;overflow-y:auto;max-height:136px;padding:0;margin-bottom:var(--s2);background:var(--card);border:1px solid var(--line);border-radius:12px;scrollbar-width:thin}
-#sugg.dd button{display:flex;width:100%;justify-content:space-between;align-items:center;gap:var(--s3);border:0;border-bottom:1px solid var(--line);border-radius:0;background:none;font-size:var(--t2);text-align:left;padding:0 var(--s4)}
+#sugg.dd{display:block;overflow-x:hidden;overflow-y:auto;overscroll-behavior:contain;touch-action:pan-y;max-height:170px;padding:0;margin-bottom:var(--s2);background:var(--card);border:1px solid var(--line);border-radius:12px;scrollbar-width:thin}
+#sugg.dd button{display:flex;width:100%;min-height:48px;justify-content:space-between;align-items:center;gap:var(--s3);border:0;border-bottom:1px solid var(--line);border-radius:0;background:none;font-size:var(--t2);text-align:left;padding:0 var(--s4)}
 #sugg.dd button:last-child{border-bottom:0}
 #sugg.dd button span{overflow:hidden;text-overflow:ellipsis;white-space:nowrap;min-width:0}
 #sugg.dd button small{flex:none;font-variant-numeric:tabular-nums}
@@ -1858,11 +1858,24 @@ document.addEventListener("pointerdown", e => {
   if(k || e.target.closest("[data-pin]")){ try{ navigator.vibrate && navigator.vibrate(8); }catch(_){} }
   if(k){ e.preventDefault(); pressKey(k.dataset.k); if(k.dataset.k==="BS"){ clearInterval(rep); const t0 = Date.now(); rep = setInterval(()=>{ if(Date.now()-t0 > 400) typeKey("BS"); }, 70); } return; }
   const pn = e.target.closest("[data-pin]"); if(pn){ e.preventDefault(); return pinKey(pn.dataset.pin); }
-  if(e.target.closest("[data-sg]")) e.preventDefault();   // keep the box active; the pick itself waits for the tap to finish
+  // a suggestion is picked only by a clean tap: finger down and up in the same spot, the list not scrolled in between
+  const sg = e.target.closest("[data-sg]"); SGT = sg ? {i:+sg.dataset.sg, x:e.clientX, y:e.clientY, t:Date.now(), top:$("#sugg").scrollTop, left:$("#sugg").scrollLeft} : null;
 });
+let SGT = null;
+document.addEventListener("pointermove", e => { if(SGT && Math.hypot(e.clientX-SGT.x, e.clientY-SGT.y) > 8) SGT = null; }, {passive:true});
+document.addEventListener("pointercancel", () => { SGT = null; });
+document.addEventListener("pointerup", e => {
+  const g = SGT; SGT = null; if(!g) return;
+  const el = $("#sugg"), sg = e.target.closest("[data-sg]"); SGOK = -1;
+  if(!el || !sg || +sg.dataset.sg!==g.i) return;
+  if(Math.abs(el.scrollTop-g.top) > 2 || Math.abs(el.scrollLeft-g.left) > 2 || Date.now()-g.t > 700) return;   // it was a scroll or a long press
+  SGOK = g.i;   // a clean tap: the click that follows does the pick
+});
+let SGOK = -1;
 ["pointerup","pointercancel","pointerleave"].forEach(ev => document.addEventListener(ev, () => clearInterval(rep)));
 document.addEventListener("click", e => {
-  const sg = e.target.closest("[data-sg]"); if(sg) return pickSugg(+sg.dataset.sg);   // no click fires after a scroll, so scrolling the list never picks
+  const sg = e.target.closest("[data-sg]");
+  if(sg){ const ok = SGOK===+sg.dataset.sg; SGOK = -1; if(ok) pickSugg(+sg.dataset.sg); return; }   // only a clean tap picks
   const a = e.target.closest("[data-act]");
   if(a){ const fn = A[a.dataset.act]; if(fn) fn(a.dataset.arg, a); return; }
   const f = e.target.closest(".fld"); if(f) return focusField(f.dataset.path);
