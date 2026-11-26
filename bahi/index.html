@@ -117,6 +117,9 @@ label.lb{display:block;font-size:var(--t1);color:var(--mut);margin:var(--s3) 2px
 .bbar{position:sticky;bottom:0;display:flex;align-items:center;gap:var(--s3);margin:var(--s3) calc(-1 * var(--s4)) 0;padding:var(--s2) var(--s4) var(--s3);
   background:var(--bg);border-top:2px solid var(--ink)}
 .bbar .btn{flex:1;max-width:220px;margin-left:auto}
+/* while the keypad is open the Save bar steps aside, so the rows being typed get the room.
+   It comes back when the keypad closes (tap an empty spot, or Next on the last box). */
+body.typing .bbar{display:none}
 .tip{background:var(--card);border:1px dashed var(--acc);border-radius:12px;padding:var(--s2) var(--s1) var(--s2) var(--s3);font-size:var(--t1);display:flex;gap:var(--s2);margin-bottom:var(--s3);align-items:flex-start}
 .tip div{flex:1;padding:var(--s1) 0}
 
@@ -194,7 +197,7 @@ label.lb{display:block;font-size:var(--t1);color:var(--mut);margin:var(--s3) 2px
 #kb{background:var(--keyd);border-top:1px solid var(--line);padding:var(--s2) var(--s2) var(--s2)}
 #sugg{display:flex;gap:var(--s2);overflow-x:auto;padding:0 0 var(--s2);scrollbar-width:none}
 /* party and item suggestions: a drop-down list, best match first, scrolls up and down */
-#sugg.dd{display:block;overflow-x:hidden;overflow-y:auto;max-height:148px;padding:0;margin-bottom:var(--s2);background:var(--card);border:1px solid var(--line);border-radius:12px;scrollbar-width:thin}
+#sugg.dd{display:block;overflow-x:hidden;overflow-y:auto;max-height:136px;padding:0;margin-bottom:var(--s2);background:var(--card);border:1px solid var(--line);border-radius:12px;scrollbar-width:thin}
 #sugg.dd button{display:flex;width:100%;justify-content:space-between;align-items:center;gap:var(--s3);border:0;border-bottom:1px solid var(--line);border-radius:0;background:none;font-size:var(--t2);text-align:left;padding:0 var(--s4)}
 #sugg.dd button:last-child{border-bottom:0}
 #sugg.dd button span{overflow:hidden;text-overflow:ellipsis;white-space:nowrap;min-width:0}
@@ -210,6 +213,7 @@ label.lb{display:block;font-size:var(--t1);color:var(--mut);margin:var(--s3) 2px
 .keys button:active{background:var(--line);transform:translateY(1px)}
 .keys .fn{font-size:var(--t2);background:var(--bg)}
 .keys .go{background:var(--pri);color:var(--prit);font-size:var(--t2)}
+.keys .save{background:var(--green);color:#fff;font-size:var(--t1);font-weight:600}
 .keys .paid{background:var(--green);color:#fff;font-size:var(--t2)}
 .keys .bill{background:var(--red);color:#fff;font-size:var(--t2)}
 .keys .go:active,.keys .paid:active,.keys .bill:active{opacity:.8}
@@ -916,12 +920,16 @@ const BSICON = `<svg width="26" height="26" viewBox="0 0 24 24" fill="none" stro
 function drawKeys(){
   const kb = $("#kb"), nav = $("#nav");
   const inApp = UI.mode==="app";
+  document.body.classList.toggle("typing", !!F);
   if(!F){ kb.classList.add("hide"); nav.classList.toggle("hide", !inApp); return; }
   kb.classList.remove("hide");
   nav.classList.toggle("hide", !(inApp && !UI.sheet && F.path.startsWith("led.")));   // the ledger keeps its tabs: its amount box is always active
   const hidek = (DESK && !UI.showKeys) ? "hidek" : "";
   const bar = DESK ? `<div class="kbbar"><span>${t("typing")}</span><button data-act="toggleKeys">${t(UI.showKeys?"hideKeys":"showKeys")}</button></div>` : "";
   let keys;
+  // on the bill screen the Save bar steps aside while typing, so the keypad carries its own Save key
+  const onBill = !UI.sheet && !!document.querySelector('.bbar [data-act=saveBill]');
+  const saveK = cls => `<button data-k="SAVE" class="save ${cls}">${t("save")}</button>`;
   if(F.kind==="text"){
     const rows = UI.alt ? ["1234567890","-/&()₹%+#@"," .,:'\"!?"] : ["QWERTYUIOP","ASDFGHJKL","ZXCVBNM"];
     const b = (c,cls="") => `<button data-k="${esc(c)}" class="${cls}">${esc(c)}</button>`;
@@ -931,7 +939,7 @@ function drawKeys(){
       + (rows[1].trim().length===9 ? "" : "")
       + `<button data-k="ALT" class="fn w3">${UI.alt?"ABC":"123"}</button>` + [...rows[2].trim()].map(c=>b(c)).join("")
       + `<button data-k="BS" class="fn w3" style="grid-column:18/span 3">${BSICON}</button>`
-      + `<button data-k="CLR" class="fn w4">${t("clear")}</button><button data-k=" " class="w8">space</button><button data-k="." class="w3">.</button><button data-k="NEXT" class="go" style="grid-column:span 5">${t("next")}</button>`
+      + `<button data-k="CLR" class="fn w4">${t("clear")}</button>${onBill?`<button data-k=" " style="grid-column:span 5">space</button>${saveK("w3")}`:`<button data-k=" " class="w8">space</button>`}<button data-k="." class="w3">.</button><button data-k="NEXT" class="go" style="grid-column:span 5">${t("next")}</button>`
       + `</div>`;
   } else {
     const led = F.path==="led.amt";
@@ -941,7 +949,7 @@ function drawKeys(){
     const d = c => `<button data-k="${c}">${c}</button>`, calc = F.kind==="calc";
     if(calc) side[1] = `<button data-k="+" class="fn">+</button>`;   // transport: + in place of Clear, × in place of 00
     if(F.kind==="sgn") side[1] = `<button data-k="±" class="fn">+ / −</button>`;   // round off: plus or minus
-    keys = `<div class="keys n ${hidek}">${d(7)}${d(8)}${d(9)}${side[0]}${d(4)}${d(5)}${d(6)}${side[1]}${d(1)}${d(2)}${d(3)}${side[2]}${calc?`<button data-k="×" class="fn">×</button>`:d("00")}${d(0)}${F.kind==="num"||F.kind==="sgn"||calc?d("."):"<span></span>"}${side[3]}</div>`;
+    keys = `<div class="keys n ${hidek}">${d(7)}${d(8)}${d(9)}${side[0]}${d(4)}${d(5)}${d(6)}${side[1]}${d(1)}${d(2)}${d(3)}${side[2]}${calc?`<button data-k="×" class="fn">×</button>`:d("00")}${d(0)}${F.kind==="num"||F.kind==="sgn"||calc?d("."):"<span></span>"}${side[3] || (onBill?saveK(""):"")}</div>`;
     if(led && hidek) keys += `<div class="keys n" style="grid-template-columns:1fr 1fr"><button data-k="PAID" class="paid">${t("paid")} (P)</button><button data-k="BILL" class="bill">${t("billed")} (B)</button></div>`;
   }
   kb.innerHTML = `<div id="sugg"></div>${bar}${keys}`;
@@ -950,6 +958,7 @@ function drawKeys(){
 /** A keypad key was pressed (touch or mouse). */
 function pressKey(k){
   if(k==="NEXT") return nextField();
+  if(k==="SAVE"){ F = null; drawKeys(); return A.saveBill(); }
   if(k==="ALT"){ UI.alt = !UI.alt; return drawKeys(); }
   if(k==="NOTE") return focusField("led.note");
   if(k==="PAID") return A.addEntry("paid");
