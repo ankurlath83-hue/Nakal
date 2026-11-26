@@ -805,6 +805,9 @@ function fieldOrder(){ const root = UI.sheet ? $("#sheet") : $("#main"); return 
 function nextField(back){
   if(!F) return;
   const p = F.path, m = p.match(/^bill\.rows\.(\d+)\.(item|rate|qty)$/);
+  if(p==="bill.party" && !back && !UI.sheet){   // party done → date → first item
+    const r = D.bill.rows.findIndex(x => !x.item); return openDate("bill.date", `bill.rows.${r<0 ? 0 : r}.item`);
+  }
   if(m && !back){
     const i = +m[1], rows = D.bill.rows, row = rows[i], last = i===rows.length-1;
     // rate is the last box in a row: open the next row
@@ -1658,12 +1661,8 @@ const A = {
   undo(){ if(!undoSnap) return; S = JSON.parse(undoSnap); undoSnap = null; commit(); UI.lastNew = null; UI.sheet = null; render(); toast(t("undone")); },
 
   /* dates */
-  pickDate(path){
-    blurField(); const [y,m,d] = String(getPath(D,path)||today()).split("-");
-    D.dt = {d, m, y:y.slice(2)};
-    openSheet({type:"date", path, val:getPath(D,path), back:UI.sheet, focus:"dt.d"});
-  },
-  dateCancel(){ const s = UI.sheet; if(s && s.back){ UI.sheet = s.back; render(); } else closeSheet(); },
+  pickDate(path){ openDate(path); },
+  dateCancel(){ const s = UI.sheet; if(s && s.back){ UI.sheet = s.back; render(); } else { closeSheet(); if(s && s.after) focusField(s.after); } },
   dateQuick(n){ const d = new Date(); d.setDate(d.getDate()-(+n)); setDate(iso(d)); },
   dateDone(){
     const v = dtValue();
@@ -1808,7 +1807,12 @@ const A = {
   confirmYes(){ UI.sheet.run(); }
 };
 function paintCashOnly(){ let tot = 0; NOTES.forEach(n => { const s = n*num(D.cash[n]); tot += s; const el = $("#cs"+n); if(el) el.textContent = s ? money(s) : ""; }); const e = $("#ctot"); if(e) e.textContent = money(tot); }
-/* typed date boxes: day, month, two-digit year */
+/* typed date boxes: day, month, two-digit year. `after` = the box to go to once the date is set (or cancelled) */
+function openDate(path, after){
+  blurField(); const [y,m,d] = String(getPath(D,path)||today()).split("-");
+  D.dt = {d, m, y:y.slice(2)};
+  openSheet({type:"date", path, val:getPath(D,path), back:UI.sheet, focus:"dt.d", after});
+}
 function dtValue(){
   const x = D.dt||{}, d = +x.d, m = +x.m, y = 2000 + (+x.y);
   if(!x.d || !x.m || String(x.y||"").length!==2 || m<1 || m>12 || d<1 || d>new Date(y, m, 0).getDate()) return "";
@@ -1824,7 +1828,7 @@ function dtPreview(){
 }
 function setDate(v){ const s = UI.sheet, path = s.path; setPath(D, path, v);
   if(s.back){ UI.sheet = s.back; render(); return; }        // came from another sheet (edit entry): go back to it
-  UI.sheet = null; render(); if(path==="led.date" && partyById(UI.pid)) focusField("led.amt"); }
+  UI.sheet = null; render(); if(s.after) focusField(s.after); else if(path==="led.date" && partyById(UI.pid)) focusField("led.amt"); }
 function bad(path){ const el = fldEl(path); if(el){ el.classList.remove("bad"); void el.offsetWidth; el.classList.add("bad"); } focusField(path); }
 function busy(el,on){ if(el) el.classList.toggle("busy", on); }
 
