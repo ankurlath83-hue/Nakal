@@ -213,7 +213,7 @@ body.typing .bbar{display:none}
 .keys button:active{background:var(--line);transform:translateY(1px)}
 .keys .fn{font-size:var(--t2);background:var(--bg)}
 .keys .go{background:var(--pri);color:var(--prit);font-size:var(--t2)}
-.keys .save{background:var(--green);color:#fff;font-size:var(--t1);font-weight:600}
+.keys .save{background:var(--green);color:#fff;font-size:var(--t2);font-weight:600}
 .keys .paid{background:var(--green);color:#fff;font-size:var(--t2)}
 .keys .bill{background:var(--red);color:#fff;font-size:var(--t2)}
 .keys .go:active,.keys .paid:active,.keys .bill:active{opacity:.8}
@@ -887,14 +887,14 @@ function suggestions(){
   const v = String(getPath(D,F.path)||"").toLowerCase();
   if(F.path==="bill.party"){
     const rec = new Map(recentParties().map((p,i) => [p.id, i]));
-    return S.parties.filter(p => p.name.toLowerCase().includes(v) && p.name.toLowerCase()!==v)
-      .sort((a,b) => (b.name.toLowerCase().startsWith(v) - a.name.toLowerCase().startsWith(v)) || (rec.get(a.id) - rec.get(b.id)))
+    return S.parties.filter(p => p.name.toLowerCase().includes(v))
+      .sort((a,b) => ((b.name.toLowerCase()===v) - (a.name.toLowerCase()===v)) || (b.name.toLowerCase().startsWith(v) - a.name.toLowerCase().startsWith(v)) || (rec.get(a.id) - rec.get(b.id)))
       .slice(0,20).map(p => ({label:p.name, set:{[F.path]:p.name}, next:true, dd:true}));
   }
   const m = F.path.match(/^bill\.rows\.(\d+)\.item$/);
   if(m){
-    return knownItems().filter(x => x.item.toLowerCase().includes(v) && x.item.toLowerCase()!==v)
-      .sort((a,b) => (b.item.toLowerCase().startsWith(v) - a.item.toLowerCase().startsWith(v)) || (a.last < b.last ? 1 : a.last > b.last ? -1 : a.item.localeCompare(b.item)))
+    return knownItems().filter(x => x.item.toLowerCase().includes(v))
+      .sort((a,b) => ((b.item.toLowerCase()===v) - (a.item.toLowerCase()===v)) || (b.item.toLowerCase().startsWith(v) - a.item.toLowerCase().startsWith(v)) || (a.last < b.last ? 1 : a.last > b.last ? -1 : a.item.localeCompare(b.item)))
       .slice(0,30).map(x => ({dd:true, label:x.item, sub:x.rate ? "₹"+plain(x.rate) : "", set:{[F.path]:x.item, [`bill.rows.${m[1]}.rate`]:String(x.rate)}, to:`bill.rows.${m[1]}.qty`}));
   }
   if(F.path==="led.note" || F.path==="led.amt") return t("quick").map(x => ({label:x, set:{"led.note":x}}));
@@ -927,9 +927,9 @@ function drawKeys(){
   const hidek = (DESK && !UI.showKeys) ? "hidek" : "";
   const bar = DESK ? `<div class="kbbar"><span>${t("typing")}</span><button data-act="toggleKeys">${t(UI.showKeys?"hideKeys":"showKeys")}</button></div>` : "";
   let keys;
-  // on the bill screen the Save bar steps aside while typing, so the keypad carries its own Save key
+  // on the bill screen the Save bar steps aside while typing; Next on the last box (round off) saves the bill
   const onBill = !UI.sheet && !!document.querySelector('.bbar [data-act=saveBill]');
-  const saveK = cls => `<button data-k="SAVE" class="save ${cls}">${t("save")}</button>`;
+  const o = fieldOrder(), lastBox = onBill && o[o.length-1]===F.path;
   if(F.kind==="text"){
     const rows = UI.alt ? ["1234567890","-/&()₹%+#@"," .,:'\"!?"] : ["QWERTYUIOP","ASDFGHJKL","ZXCVBNM"];
     const b = (c,cls="") => `<button data-k="${esc(c)}" class="${cls}">${esc(c)}</button>`;
@@ -939,17 +939,17 @@ function drawKeys(){
       + (rows[1].trim().length===9 ? "" : "")
       + `<button data-k="ALT" class="fn w3">${UI.alt?"ABC":"123"}</button>` + [...rows[2].trim()].map(c=>b(c)).join("")
       + `<button data-k="BS" class="fn w3" style="grid-column:18/span 3">${BSICON}</button>`
-      + `<button data-k="CLR" class="fn w4">${t("clear")}</button>${onBill?`<button data-k=" " style="grid-column:span 5">space</button>${saveK("w3")}`:`<button data-k=" " class="w8">space</button>`}<button data-k="." class="w3">.</button><button data-k="NEXT" class="go" style="grid-column:span 5">${t("next")}</button>`
+      + `<button data-k="CLR" class="fn w4">${t("clear")}</button><button data-k=" " class="w8">space</button><button data-k="." class="w3">.</button><button data-k="NEXT" class="go" style="grid-column:span 5">${t("next")}</button>`
       + `</div>`;
   } else {
     const led = F.path==="led.amt";
     const side = led
       ? [`<button data-k="BS" class="fn">${BSICON}</button>`, `<button data-k="NOTE" class="fn">${t("note")}</button>`, `<button data-k="PAID" class="paid">${t("paid")}</button>`, `<button data-k="BILL" class="bill">${t("billed")}</button>`]
-      : [`<button data-k="BS" class="fn">${BSICON}</button>`, `<button data-k="CLR" class="fn">${t("clear")}</button>`, `<button data-k="NEXT" class="go" style="grid-row:span 2;height:auto">${t("next")}</button>`, ""];
+      : [`<button data-k="BS" class="fn">${BSICON}</button>`, `<button data-k="CLR" class="fn">${t("clear")}</button>`, (lastBox ? `<button data-k="NEXT" class="save" style="grid-row:span 2;height:auto">${t("save")}</button>` : `<button data-k="NEXT" class="go" style="grid-row:span 2;height:auto">${t("next")}</button>`), ""];
     const d = c => `<button data-k="${c}">${c}</button>`, calc = F.kind==="calc";
     if(calc) side[1] = `<button data-k="+" class="fn">+</button>`;   // transport: + in place of Clear, × in place of 00
     if(F.kind==="sgn") side[1] = `<button data-k="±" class="fn">+ / −</button>`;   // round off: plus or minus
-    keys = `<div class="keys n ${hidek}">${d(7)}${d(8)}${d(9)}${side[0]}${d(4)}${d(5)}${d(6)}${side[1]}${d(1)}${d(2)}${d(3)}${side[2]}${calc?`<button data-k="×" class="fn">×</button>`:d("00")}${d(0)}${F.kind==="num"||F.kind==="sgn"||calc?d("."):"<span></span>"}${side[3] || (onBill?saveK(""):"")}</div>`;
+    keys = `<div class="keys n ${hidek}">${d(7)}${d(8)}${d(9)}${side[0]}${d(4)}${d(5)}${d(6)}${side[1]}${d(1)}${d(2)}${d(3)}${side[2]}${calc?`<button data-k="×" class="fn">×</button>`:d("00")}${d(0)}${F.kind==="num"||F.kind==="sgn"||calc?d("."):"<span></span>"}${side[3]}</div>`;
     if(led && hidek) keys += `<div class="keys n" style="grid-template-columns:1fr 1fr"><button data-k="PAID" class="paid">${t("paid")} (P)</button><button data-k="BILL" class="bill">${t("billed")} (B)</button></div>`;
   }
   kb.innerHTML = `<div id="sugg"></div>${bar}${keys}`;
@@ -958,7 +958,6 @@ function drawKeys(){
 /** A keypad key was pressed (touch or mouse). */
 function pressKey(k){
   if(k==="NEXT") return nextField();
-  if(k==="SAVE"){ F = null; drawKeys(); return A.saveBill(); }
   if(k==="ALT"){ UI.alt = !UI.alt; return drawKeys(); }
   if(k==="NOTE") return focusField("led.note");
   if(k==="PAID") return A.addEntry("paid");
@@ -1107,7 +1106,7 @@ function billHTML(){
     <div class="tot"><span class="mut">${t("transport")}</span><div style="width:62%">${fld("bill.transport","calc","0")}</div></div>
     <div class="tot"><span class="mut">${t("roundOff")}</span><span class="row" style="width:62%"><div class="sp">${fld("bill.roundAmt","sgn","0")}</div><button class="chip ${b.roundOn && !sgnNum(b.roundAmt)?"on":""}" data-act="toggleRound">${t("auto")}</button></span></div>
     ${ed ? `<div class="row mt3"><button class="btn" style="flex:1" data-act="shareBill" data-arg="${b.id}">${t("share")}</button><button class="btn" style="flex:1;color:var(--red)" data-act="askDelBill" data-arg="${b.id}">${t("del")}</button></div>` : ""}
-    <div class="bbar"><div><div class="sm mut">${t("grand")}</div><div class="mid" id="bgrand"></div></div><button class="btn pri" data-act="saveBill">${t(ed?"saveChanges":"saveBill")}</button></div>`;
+    <div class="bbar"><div><div class="sm mut">${t("grand")}</div><div class="mid" id="bgrand"></div></div><button class="btn pri" data-act="saveBill" data-enter>${t(ed?"saveChanges":"saveBill")}</button></div>`;
 }
 function billMath(b){ let sub = 0; const subs = b.rows.map(r => { const s = r2(num(r.rate)*num(r.qty)); sub += s; return s; }); sub = r2(sub);
   const raw = r2(sub + evalCalc(b.transport)), man = sgnNum(b.roundAmt);        // a typed round off wins over Auto
@@ -1859,10 +1858,11 @@ document.addEventListener("pointerdown", e => {
   if(k || e.target.closest("[data-pin]")){ try{ navigator.vibrate && navigator.vibrate(8); }catch(_){} }
   if(k){ e.preventDefault(); pressKey(k.dataset.k); if(k.dataset.k==="BS"){ clearInterval(rep); const t0 = Date.now(); rep = setInterval(()=>{ if(Date.now()-t0 > 400) typeKey("BS"); }, 70); } return; }
   const pn = e.target.closest("[data-pin]"); if(pn){ e.preventDefault(); return pinKey(pn.dataset.pin); }
-  const sg = e.target.closest("[data-sg]"); if(sg){ e.preventDefault(); return pickSugg(+sg.dataset.sg); }
+  if(e.target.closest("[data-sg]")) e.preventDefault();   // keep the box active; the pick itself waits for the tap to finish
 });
 ["pointerup","pointercancel","pointerleave"].forEach(ev => document.addEventListener(ev, () => clearInterval(rep)));
 document.addEventListener("click", e => {
+  const sg = e.target.closest("[data-sg]"); if(sg) return pickSugg(+sg.dataset.sg);   // no click fires after a scroll, so scrolling the list never picks
   const a = e.target.closest("[data-act]");
   if(a){ const fn = A[a.dataset.act]; if(fn) fn(a.dataset.arg, a); return; }
   const f = e.target.closest(".fld"); if(f) return focusField(f.dataset.path);
