@@ -179,12 +179,12 @@ body.typing .bbar{display:none}
 #sheet .acts{display:flex;gap:var(--s2);margin-top:var(--s4)}
 #sheet .acts .btn{flex:1;min-width:0}
 .sharetext{user-select:text;-webkit-user-select:text;white-space:pre-wrap;font:var(--t1)/1.4 inherit;font-family:inherit;background:var(--card);border:1px solid var(--line);border-radius:12px;padding:var(--s3);max-height:24vh;overflow:auto;margin:var(--s3) 0 0}
-.wheel{display:flex;gap:var(--s2);height:176px;position:relative;margin-top:var(--s3)}
-.wheel::before{content:"";position:absolute;left:0;right:0;top:66px;height:44px;border-radius:12px;background:var(--card);border:1px solid var(--line)}
-.wheel .col{flex:1;overflow-y:auto;scroll-snap-type:y mandatory;position:relative;scrollbar-width:none;text-align:center}
-.wheel .col::-webkit-scrollbar{display:none}
-.wheel .col div{height:44px;line-height:44px;scroll-snap-align:center;font-size:var(--t3);font-weight:600}
-.wheel .col::before,.wheel .col::after{content:"";display:block;height:66px}
+.dtrow{display:flex;gap:var(--s2);align-items:center;margin-top:var(--s3)}
+.dcell{position:relative;width:76px;flex:none}
+.dcell .dl{position:absolute;top:var(--s2);left:0;right:0;text-align:center;font-size:var(--t1);color:var(--mut);text-transform:uppercase;letter-spacing:.04em;pointer-events:none;z-index:1}
+.dcell .fld{justify-content:center;text-align:center;font-size:var(--t4);font-weight:700;min-height:88px;padding:var(--s4) 0 0;font-variant-numeric:tabular-nums}
+#dtprev{flex:1;min-width:0;padding-left:var(--s2)}
+#dtprev b{display:block;font-size:var(--t3)} #dtprev small{font-size:var(--t1);color:var(--green);font-weight:600} #dtprev small.bad{color:var(--red)}
 
 /* ---------- Toast: sits over the title bar so it never covers a field or button in use ---------- */
 #toast{position:absolute;left:var(--s2);right:var(--s2);top:var(--s1);min-height:52px;z-index:8;background:var(--ink);color:var(--bg);border-radius:16px;padding:var(--s1) var(--s1) var(--s1) var(--s4);
@@ -349,7 +349,7 @@ en:{
   storeFail:"Could not save on this device. Storage may be full. Save a backup file now.",
   syncOther:"Sync is paused: this device and your other device have different PINs. Lock and open again with the newest PIN.",
   delEntry:"Delete this entry?", delBill:"Delete this bill?", delBillSub:"It will also be removed from the party ledger.", openBill:"Open bill", yesDelete:"Yes, delete",
-  today:"Today", yesterday:"Yesterday", opening_bal:"Opening balance", total:"Total", showKeys:"Show keypad", hideKeys:"Hide keypad", typing:"Type on your keyboard. Enter = next.",
+  today:"Today", yesterday:"Yesterday", dDay:"Day", dMonth:"Month", dYear:"Year", badDate:"Check the date", daysAgo:"{0} days ago", daysAhead:"In {0} days", opening_bal:"Opening balance", total:"Total", showKeys:"Show keypad", hideKeys:"Hide keypad", typing:"Type on your keyboard. Enter = next.",
   remindText:"Namaste {0} ji,\nA payment of {1} is pending with {2}.{3}\nPlease pay at the earliest. Thank you.", remindLast:" Last bill: {0}.",
   nothingDue:"{0} has nothing pending.", items:"{0} items", item1:"1 item", version:"Version", prevData:"Earlier copy of your data",
   gSect:"Google account", gSignIn:"Sign in with Google", gSignInSub:"Safe copy, and the same book on your other devices", gHave:"I already use Bahi: sign in with Google",
@@ -420,7 +420,7 @@ hi:{
   storeFail:"इस फोन में सेव नहीं हुआ। जगह भर गई हो सकती है। अभी बैकअप फाइल सेव करें।",
   syncOther:"सिंक रुका है: इस फोन और दूसरे फोन का पिन अलग है। लॉक करके नए पिन से खोलें।",
   delEntry:"यह एंट्री हटाएं?", delBill:"यह बिल हटाएं?", delBillSub:"यह पार्टी के खाते से भी हट जाएगा।", openBill:"बिल खोलें", yesDelete:"हां, हटाएं",
-  today:"आज", yesterday:"कल", opening_bal:"पिछला बाकी", total:"कुल", showKeys:"कीपैड दिखाएं", hideKeys:"कीपैड छुपाएं", typing:"कीबोर्ड से लिखें। Enter = आगे।",
+  today:"आज", yesterday:"कल", dDay:"दिन", dMonth:"महीना", dYear:"साल", badDate:"तारीख ठीक करें", daysAgo:"{0} दिन पहले", daysAhead:"{0} दिन बाद", opening_bal:"पिछला बाकी", total:"कुल", showKeys:"कीपैड दिखाएं", hideKeys:"कीपैड छुपाएं", typing:"कीबोर्ड से लिखें। Enter = आगे।",
   remindText:"नमस्ते {0} जी,\n{2} में आपका {1} बाकी है।{3}\nकृपया जल्दी पेमेंट करें। धन्यवाद।", remindLast:" पिछला बिल: {0}।",
   nothingDue:"{0} का कुछ बाकी नहीं है।", items:"{0} सामान", item1:"1 सामान", version:"वर्ज़न", prevData:"आपके डेटा की पिछली कॉपी",
   gSect:"गूगल खाता", gSignIn:"गूगल से साइन इन करें", gSignInSub:"सुरक्षित कॉपी, और दूसरे फोन/कंप्यूटर पर वही बही", gHave:"मैं पहले से बही चलाता हूं: गूगल से साइन इन करें",
@@ -796,7 +796,7 @@ function focusField(path){
   const el = fldEl(path); if(!el) return;
   $$(".fld.on").forEach(e => e.classList.remove("on"));
   el.classList.add("on"); el.classList.remove("bad");
-  F = {path, kind:el.dataset.kind};
+  F = {path, kind:el.dataset.kind, fresh:el.dataset.kind==="dd"};   // date boxes: the first digit typed replaces what was there
   drawKeys(); el.scrollIntoView({block:"nearest"}); el.scrollLeft = el.scrollWidth;   // long names: show the end where the cursor is
 }
 function blurField(){ F = null; $$(".fld.on").forEach(e => e.classList.remove("on")); drawKeys(); }
@@ -835,6 +835,7 @@ function typeKey(k){
       } else return;
     }
   }
+  else if(kind==="dd"){ if(!/^\d$/.test(k)) return; if(F.fresh) v = ""; if(v.length >= 2) return; v += k; }
   else if(kind==="text"){ if(v.length < 40){ if(k===" " && (!v || v.endsWith(" "))) return; v += k; } }
   else if(kind==="calc"){                       // numbers joined by × and +
     if(k==="×" || k==="+"){
@@ -865,7 +866,9 @@ function typeKey(k){
       v = (v==="0" ? "" : v) + k;
     } else return;
   }
+  F.fresh = false;
   setPath(D, F.path, v); paintField(F.path); onInput(F.path);
+  if(kind==="dd" && v.length===2 && F.path!=="dt.y") nextField();   // day full → month, month full → year
 }
 /** Capital letter at the start of each word, small letters after. */
 const caseFor = ch => { if(!F) return ch; const v = String(getPath(D,F.path)||""); return (!v || v.endsWith(" ")) ? ch.toUpperCase() : ch.toLowerCase(); };
@@ -873,6 +876,7 @@ const caseFor = ch => { if(!F) return ch; const v = String(getPath(D,F.path)||""
 /** Things that must refresh while typing, without redrawing the whole screen. */
 function onInput(path){
   if(path.startsWith("bill.")) paintBillTotals();
+  else if(path.startsWith("dt.")){ const e = $("#dtprev"); if(e) e.innerHTML = dtPreview(); }
   else if(path==="q.parties") $("#plist").innerHTML = partyListHTML();
   else if(path==="q.bills") $("#blist").innerHTML = billListHTML();
   else if(path==="q.pick") $("#picklist").innerHTML = pickListHTML();
@@ -929,7 +933,7 @@ function drawKeys(){
   let keys;
   // on the bill screen the Save bar steps aside while typing; Next on the last box (round off) saves the bill
   const onBill = !UI.sheet && !!document.querySelector('.bbar [data-act=saveBill]');
-  const o = fieldOrder(), lastBox = onBill && o[o.length-1]===F.path;
+  const o = fieldOrder(), lastBox = onBill && o[o.length-1]===F.path, dtLast = F.path==="dt.y";
   if(F.kind==="text"){
     const rows = UI.alt ? ["1234567890","-/&()₹%+#@"," .,:'\"!?"] : ["QWERTYUIOP","ASDFGHJKL","ZXCVBNM"];
     const b = (c,cls="") => `<button data-k="${esc(c)}" class="${cls}">${esc(c)}</button>`;
@@ -945,11 +949,11 @@ function drawKeys(){
     const led = F.path==="led.amt";
     const side = led
       ? [`<button data-k="BS" class="fn">${BSICON}</button>`, `<button data-k="NOTE" class="fn">${t("note")}</button>`, `<button data-k="PAID" class="paid">${t("paid")}</button>`, `<button data-k="BILL" class="bill">${t("billed")}</button>`]
-      : [`<button data-k="BS" class="fn">${BSICON}</button>`, `<button data-k="CLR" class="fn">${t("clear")}</button>`, (lastBox ? `<button data-k="NEXT" class="save" style="grid-row:span 2;height:auto">${t("save")}</button>` : `<button data-k="NEXT" class="go" style="grid-row:span 2;height:auto">${t("next")}</button>`), ""];
+      : [`<button data-k="BS" class="fn">${BSICON}</button>`, `<button data-k="CLR" class="fn">${t("clear")}</button>`, (lastBox || dtLast ? `<button data-k="NEXT" class="save" style="grid-row:span 2;height:auto">${t(dtLast?"done":"save")}</button>` : `<button data-k="NEXT" class="go" style="grid-row:span 2;height:auto">${t("next")}</button>`), ""];
     const d = c => `<button data-k="${c}">${c}</button>`, calc = F.kind==="calc";
     if(calc) side[1] = `<button data-k="+" class="fn">+</button>`;   // transport: + in place of Clear, × in place of 00
     if(F.kind==="sgn") side[1] = `<button data-k="±" class="fn">+ / −</button>`;   // round off: plus or minus
-    keys = `<div class="keys n ${hidek}">${d(7)}${d(8)}${d(9)}${side[0]}${d(4)}${d(5)}${d(6)}${side[1]}${d(1)}${d(2)}${d(3)}${side[2]}${calc?`<button data-k="×" class="fn">×</button>`:d("00")}${d(0)}${F.kind==="num"||F.kind==="sgn"||calc?d("."):"<span></span>"}${side[3]}</div>`;
+    keys = `<div class="keys n ${hidek}">${d(7)}${d(8)}${d(9)}${side[0]}${d(4)}${d(5)}${d(6)}${side[1]}${d(1)}${d(2)}${d(3)}${side[2]}${calc?`<button data-k="×" class="fn">×</button>`:F.kind==="dd"?"<span></span>":d("00")}${d(0)}${F.kind==="num"||F.kind==="sgn"||calc?d("."):"<span></span>"}${side[3]}</div>`;
     if(led && hidek) keys += `<div class="keys n" style="grid-template-columns:1fr 1fr"><button data-k="PAID" class="paid">${t("paid")} (P)</button><button data-k="BILL" class="bill">${t("billed")} (B)</button></div>`;
   }
   kb.innerHTML = `<div id="sugg"></div>${bar}${keys}`;
@@ -1246,12 +1250,9 @@ function renderSheet(){
   let h = "";
   if(s.type==="confirm") h = `<h3>${esc(s.title)}</h3><div class="mut">${esc(s.sub||"")}</div><div class="acts"><button class="btn" data-act="closeSheet">${t("cancel")}</button><button class="btn ${s.danger?"red":"pri"}" data-act="confirmYes">${esc(s.yes)}</button></div>`;
   else if(s.type==="date"){
-    const [y,m,d] = s.val.split("-").map(Number), ny = new Date().getFullYear();
-    const months = Array.from({length:12},(_,i)=> new Date(2000,i,1).toLocaleDateString(LANG==="hi"?"hi-IN":"en-IN",{month:"short"}));
     h = `<h3>${t("date")}</h3><div class="chips" style="margin-top:8px"><button class="chip" data-act="dateQuick" data-arg="0">${t("today")}</button><button class="chip" data-act="dateQuick" data-arg="1">${t("yesterday")}</button></div>
-      <div class="wheel"><div class="col" id="wd">${Array.from({length:31},(_,i)=>`<div>${i+1}</div>`).join("")}</div><div class="col" id="wm">${months.map(x=>`<div>${x}</div>`).join("")}</div><div class="col" id="wy">${[ny-2,ny-1,ny,ny+1].map(x=>`<div>${x}</div>`).join("")}</div></div>
-      <div class="acts"><button class="btn" data-act="dateCancel">${t("cancel")}</button><button class="btn pri" data-act="dateDone">${t("done")}</button></div>`;
-    setTimeout(()=>{ const set = (id,i)=>{ const c = $("#"+id); if(c) c.scrollTop = i*44; }; set("wd",d-1); set("wm",m-1); set("wy",Math.max(0,Math.min(3,y-(ny-2)))); }, 0);
+      <div class="dtrow"><div class="dcell"><span class="dl">${t("dDay")}</span>${fld("dt.d","dd","DD")}</div><div class="dcell"><span class="dl">${t("dMonth")}</span>${fld("dt.m","dd","MM")}</div><div class="dcell"><span class="dl">${t("dYear")}</span>${fld("dt.y","dd","YY")}</div><div id="dtprev">${dtPreview()}</div></div>
+      <div class="acts"><button class="btn" data-act="dateCancel">${t("cancel")}</button><button class="btn pri" data-act="dateDone" data-enter>${t("done")}</button></div>`;
   }
   else if(s.type==="pick") h = `<h3>${t("chooseParty")}</h3><div style="margin-top:8px">${fld("q.pick","text",t("searchParty"))}</div><div id="picklist" style="max-height:38vh;overflow:auto">${pickListHTML()}</div><div class="acts"><button class="btn" data-act="closeSheet">${t("cancel")}</button></div>`;
   else if(s.type==="party") h = `<h3>${s.id ? t("edit") : t("addParty")}</h3><label class="lb">${t("name")}</label>${fld("party.name","text",t("party"))}<label class="lb">${t("phone")}</label>${fld("party.phone","tel","98XXXXXXXX")}<label class="lb">${t("creditDays")}</label>${fld("party.credit","int",String(S.set.credit))}
@@ -1657,13 +1658,17 @@ const A = {
   undo(){ if(!undoSnap) return; S = JSON.parse(undoSnap); undoSnap = null; commit(); UI.lastNew = null; UI.sheet = null; render(); toast(t("undone")); },
 
   /* dates */
-  pickDate(path){ blurField(); openSheet({type:"date", path, val:getPath(D,path), back:UI.sheet}); },
+  pickDate(path){
+    blurField(); const [y,m,d] = String(getPath(D,path)||today()).split("-");
+    D.dt = {d, m, y:y.slice(2)};
+    openSheet({type:"date", path, val:getPath(D,path), back:UI.sheet, focus:"dt.d"});
+  },
   dateCancel(){ const s = UI.sheet; if(s && s.back){ UI.sheet = s.back; render(); } else closeSheet(); },
   dateQuick(n){ const d = new Date(); d.setDate(d.getDate()-(+n)); setDate(iso(d)); },
   dateDone(){
-    const idx = id => Math.round($("#"+id).scrollTop/44), ny = new Date().getFullYear();
-    const y = ny-2+Math.max(0,Math.min(3,idx("wy"))), m = Math.max(0,Math.min(11,idx("wm"))), dim = new Date(y, m+1, 0).getDate();
-    setDate(`${y}-${pad2(m+1)}-${pad2(Math.max(1,Math.min(dim, idx("wd")+1)))}`);
+    const v = dtValue();
+    if(!v){ toast(t("badDate")); return bad(!dtOk("d") ? "dt.d" : !dtOk("m") ? "dt.m" : "dt.y"); }
+    setDate(v);
   },
 
   /* parties */
@@ -1803,6 +1808,20 @@ const A = {
   confirmYes(){ UI.sheet.run(); }
 };
 function paintCashOnly(){ let tot = 0; NOTES.forEach(n => { const s = n*num(D.cash[n]); tot += s; const el = $("#cs"+n); if(el) el.textContent = s ? money(s) : ""; }); const e = $("#ctot"); if(e) e.textContent = money(tot); }
+/* typed date boxes: day, month, two-digit year */
+function dtValue(){
+  const x = D.dt||{}, d = +x.d, m = +x.m, y = 2000 + (+x.y);
+  if(!x.d || !x.m || String(x.y||"").length!==2 || m<1 || m>12 || d<1 || d>new Date(y, m, 0).getDate()) return "";
+  return `${y}-${pad2(m)}-${pad2(d)}`;
+}
+function dtOk(k){ const x = D.dt||{}; if(k==="m") return +x.m>=1 && +x.m<=12; if(k==="y") return String(x.y||"").length===2; return +x.d>=1 && +x.d<=31 && (!dtOk("m") || !dtOk("y") || +x.d <= new Date(2000+(+x.y), +x.m, 0).getDate()); }
+function dtPreview(){
+  const v = dtValue(); if(!v) return `<b>&nbsp;</b><small class="bad">${t("badDate")}</small>`;
+  const dt = new Date(v+"T00:00:00"), loc = LANG==="hi"?"hi-IN":"en-IN";
+  const days = Math.round((new Date(today()+"T00:00:00") - dt)/864e5);
+  const rel = days===0 ? t("today") : days===1 ? t("yesterday") : days>1 ? t("daysAgo", days) : t("daysAhead", -days);
+  return `<b>${esc(dt.toLocaleDateString(loc,{weekday:"short"}))}, ${esc(dt.toLocaleDateString(loc,{month:"short"}))}</b><small>${esc(rel)}</small>`;
+}
 function setDate(v){ const s = UI.sheet, path = s.path; setPath(D, path, v);
   if(s.back){ UI.sheet = s.back; render(); return; }        // came from another sheet (edit entry): go back to it
   UI.sheet = null; render(); if(path==="led.date" && partyById(UI.pid)) focusField("led.amt"); }
